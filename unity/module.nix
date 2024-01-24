@@ -1,13 +1,18 @@
-{ config, pkgs, lib, ... }:
+{ config, modulesPath, pkgs, lib, ... }:
 
 with lib;
 
 let
   cfg = config.nix-unity;
+  cfgFile = pkgs.formats.json {};
 in
 {
+  imports = [
+    "${modulesPath}/profiles/minimal.nix"
+  ];
+
   options.nix-unity = {
-    enable = mkEnableOption "nix-unity";
+    # enable = mkEnableOption "nix-unity";
 
     modules = {
       mergePath = {
@@ -42,14 +47,28 @@ in
     };
   };
 
-  config = mkIf (cfg.enable) {
-    system.extraSystemBuilderCommands = ''
-      # toJSON cfg.modules
+  config = { # mkIf (cfg.enable) {
+    # disable kernel and such
+    boot.isContainer = true;
+
+    system.build.installBootLoader = pkgs.writeScript "install-lxd-sbin-init.sh" ''
+      #!${pkgs.runtimeShell}
+      ${pkgs.coreutils}/bin/ln -fs "$1/init" /sbin/init
+    '';
+
+    system.extraSystemBuilderCmds = ''
+      cp "${cfgFile.generate "unify.json" cfg.modules}" $out/unify.json
+
+      # add our custom unify
       install -D ${./unify.sh} $out/bin/unify
-      substituteInPlace $out/bin/nix-unity \
+      substituteInPlace $out/bin/unify \
         --subst-var-by toplevel $out \
         --subst-var-by etc ${config.system.build.etc}/etc \
         --subst-var-by path ${config.system.path}
+
+      # replace switch-to-configuration
+      rm -f $out/bin/switch-to-configuration
+      ln -s $out/bin/unify $out/bin/switch-to-configuration
     '';
   };
 }

@@ -2,9 +2,9 @@
 
 set -euxo pipefail
 
-toplevel=@@toplevel@@
-etc=@@etc@@
-path=@@path@@
+toplevel=@toplevel@
+etc=@etc@
+path=@path@
 
 cmd="$1"
 
@@ -12,7 +12,7 @@ state="/var/nix-unity"
 
 mkdir -p "$state"
 
-if [ "$cmd" = "boot" ]; then
+if [ "$cmd" = "at_boot" ] || [ ! -e /run/booted-system ]; then
   ln -sf "$toplevel" /run/booted-system
 fi
 
@@ -24,6 +24,7 @@ handler() {
   PLUGIN="$1"
   MARKER="$state/_installed_$PLUGIN"
   ACTION="$2"
+  VERSION="$3"
 
   if [ "$ACTION" = "uninstall" ] && ([ -e "$MARKER" ] || [ "$(cat "$MARKER")" != "$VERSION" ]) && fnc "uninstall_$PLUGIN"; then
     "uninstall_$PLUGIN"
@@ -40,14 +41,22 @@ handler() {
   fi
 }
 
+fnc() {
+  if [ -n "$(LC_ALL=C type -t "$1")" ] && [ "$(LC_ALL=C type -t "$1")" = function ]; then
+    return 0
+  else
+    return 1
+  fi
+}
+
 # MergePath: Append /run/current-system/sw/bin to PATH
 
 install_mergePath() {
-
+  true
 }
 
 uninstall_mergePath() {
-
+  true
 }
 
 execute_etcMerge() {
