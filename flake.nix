@@ -1,5 +1,5 @@
 {
-  description = "";
+  description = "Use NixOS parts in your host operating-system, for a step-by-step migration";
 
   # For checks
   inputs.nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
