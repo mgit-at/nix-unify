@@ -70,8 +70,9 @@ in
     environment.noXlibs = false;
 
     # managment, etc/profile.d
-    environment.systemPackages = [
-      pkgs.nix-unify.path
+    environment.systemPackages = with pkgs; [
+      nix-unify.path
+      oil
     ];
 
     nixpkgs.overlays = [
@@ -91,6 +92,7 @@ in
       '';
       before = [ "basic.target" ];
       after = [ "local-fs.target" "sysinit.target" ];
+      wantedBy = [ "basic.target" ];
       serviceConfig = {
         Type = "oneshot";
         RemainAfterExit = true;

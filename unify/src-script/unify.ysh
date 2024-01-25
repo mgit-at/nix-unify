@@ -22,6 +22,9 @@ proc rm-link(src, target) {
   ln -sf "$src" "$target"
 }
 
+# TODO: create links "just in time" with calls to function instead of collecting them?
+# or use concept of "after script" (ctx.script = '')
+
 proc main(cmd ; cfg) {
   if (cmd === "at_boot") {
     rm-link "$toplevel" /run/booted-system
