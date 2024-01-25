@@ -4,9 +4,9 @@ lxc launch ubuntu:22.04 unify-ubuntu
 echo "
 apt update
 apt dist-upgrade -y
-#yes y | sh <(curl -L https://nixos.org/nix/install) --daemon
+yes y | sh <(curl -L https://nixos.org/nix/install) --daemon
 mkdir -p /root/.ssh
-#echo \"$(cat ~/.ssh/*pub)\" > /root/.ssh/authorized_keys
+echo \"$(cat ~/.ssh/*pub)\" > /root/.ssh/authorized_keys
 chmod 600 -R /root/.ssh
 " | lxc exec unify-ubuntu bash -
 echo 'for f in /nix/var/nix/profiles/default/bin/nix*; do
