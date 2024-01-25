@@ -23,7 +23,7 @@
 
 
     nixosModules = {
-      unity = import ./unity/module.nix;
+      unify = import ./unify/module.nix;
     };
 
     checks = {

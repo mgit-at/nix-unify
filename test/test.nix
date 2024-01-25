@@ -9,7 +9,7 @@ vmTools.runInLinuxVM (
       ''
         touch $out
       '';
-    diskImageBase = "test-unity-${name}";
+    diskImageBase = "test-unify-${name}";
     buildInputs = [ pkgs.util-linux pkgs.perl ];
   }
   ''

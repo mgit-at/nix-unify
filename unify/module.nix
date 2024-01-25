@@ -3,7 +3,7 @@
 with lib;
 
 let
-  cfg = config.nix-unity;
+  cfg = config.nix-unify;
   cfgFile = pkgs.formats.json {};
 in
 {
@@ -11,8 +11,8 @@ in
     "${modulesPath}/profiles/minimal.nix"
   ];
 
-  options.nix-unity = {
-    # enable = mkEnableOption "nix-unity";
+  options.nix-unify = {
+    # enable = mkEnableOption "nix-unify";
 
     modules = {
       mergePath = {

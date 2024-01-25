@@ -8,7 +8,7 @@ path=@path@
 
 cmd="$1"
 
-state="/var/nix-unity"
+state="/var/nix-unify"
 
 mkdir -p "$state"
 
@@ -49,23 +49,40 @@ fnc() {
   fi
 }
 
-# MergePath: Append /run/current-system/sw/bin to PATH
+# mergePath: Append /run/current-system/sw/bin to PATH
 
 install_mergePath() {
-  true
+  #if cat /etc/environment | grep PATH; then
+  #  sed "s|"
+  #fi
+  # HACK: append properly
+  sed "s|/snap/bin|/snap/bin:/run/current-system/sw/bin|" -i /etc/environment
+  sed "s|/snap/bin|/snap/bin:/run/current-system/sw/bin|" -i /etc/sudoers
 }
 
 uninstall_mergePath() {
   true
 }
 
+# etcMerge: Link some files into host's etc
+
+install_etcMerge() {
+  touch "$state/etcMerge"
+}
+
 execute_etcMerge() {
   ln -sf "$etc" /etc/static
+  # link files, write db into $state/etcMerge
+}
+
+uninstall_etcMerge() {
+  # remove all files
+  rm -f /etc/static
 }
 
 # Execute (todo: autogenerate)
 
-handler mergePath install 1
+handler mergePath install 0
 handler etcMerge install 1
 
 # TODO

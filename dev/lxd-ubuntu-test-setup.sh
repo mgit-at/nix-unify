@@ -1,6 +1,6 @@
 #!/bin/bash
 
-lxc launch ubuntu:22.04 unity-ubuntu
+lxc launch ubuntu:22.04 unify-ubuntu
 echo "
 apt update
 apt dist-upgrade -y
@@ -8,7 +8,7 @@ apt dist-upgrade -y
 mkdir -p /root/.ssh
 #echo \"$(cat ~/.ssh/*pub)\" > /root/.ssh/authorized_keys
 chmod 600 -R /root/.ssh
-" | lxc exec unity-ubuntu bash -
+" | lxc exec unify-ubuntu bash -
 echo 'for f in /nix/var/nix/profiles/default/bin/nix*; do
   ln -s "$f" "/usr/bin/$(basename "$f")"
-done' | lxc exec unity-ubuntu bash -
+done' | lxc exec unify-ubuntu bash -
