@@ -1,0 +1,42 @@
+#!/usr/bin/env ysh
+
+### Deploy script
+
+module main || return 0         # declaration, "include guard"
+
+const self = '@self@'
+const toplevel = '@toplevel@'
+const state = '/var/nix-unify'
+const tmpState = '/run/nix-unify'
+
+export PATH = '@path@'
+var cfg
+var links
+
+@srcblock@
+
+proc rm-link(src, target) {
+  rm -f "$target"
+  ln -sf "$src" "$target"
+}
+
+proc main(cmd) {
+  if (cmd === "at_boot") || ! test --file /run/booted-system {
+    rm-link "$toplevel" /run/booted-system
+  }
+
+  rm-link "$toplevel" /run/current-system
+
+  links = cfg.links
+
+  @handlerblock@
+
+  realise-target-links (links)
+}
+
+if is-main {
+  cat "$toplevel/unify.json" json read (&cfg)
+  mkdir -p "$state"
+  mkdir -p "$tmpState"
+  main @ARGV
+}

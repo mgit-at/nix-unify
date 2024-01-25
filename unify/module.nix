@@ -5,6 +5,17 @@ with lib;
 let
   cfg = config.nix-unify;
   cfgFile = pkgs.formats.json {};
+
+  fileSub = { ... }: {
+    enable = mkOption {
+      type = types.bool;
+      default = true;
+    };
+
+    target = mkOption {
+      type = types.str;
+    };
+  };
 in
 {
   imports = [
@@ -15,12 +26,13 @@ in
   options.nix-unify = {
     # enable = mkEnableOption "nix-unify";
 
-    files = mkOption {
-      type = types.attrsOf mkSubmodule ({ ... }: {
-        target = mkOption {
-          type = types.str;
-        };
-      });
+    files = {
+      etc = mkOption {
+        type = types.attrsOf mkSubmodule (fileSub);
+      };
+      sw = mkOption {
+        type = types.attrsOf mkSubmodule (fileSub);
+      };
     };
 
     use = {
@@ -97,13 +109,13 @@ in
       cp "${cfgFile.generate "unify.json" cfg.modules}" $out/unify.json
 
       # add unify
-      install -D ${pkgs.nix-unify.script}/unify.sh $out/bin/unify
-      echo ${unify_primer} >> $out/bin/unify
+      install -D ${pkgs.nix-unify.script}/unify.ysh $out/bin/unify
 
       substituteInPlace $out/bin/unify \
         --subst-var-by toplevel $out \
         --subst-var-by etc ${config.system.build.etc}/etc \
-        --subst-var-by path ${config.system.path}
+        --subst-var-by path ${config.system.path} \
+        --subst-var-by handlerblock ${unify_primer}
 
       # replace switch-to-configuration
       rm -f $out/bin/switch-to-configuration

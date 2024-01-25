@@ -1,6 +1,7 @@
 { stdenv
 , lib
 , bash
+, oil
 , coreutils
 , gnugrep
 , gnused
@@ -12,6 +13,7 @@ stdenv.mkDerivation {
 
   buildInputs = [
     bash
+    oil
   ];
 
   buildPhase = ''

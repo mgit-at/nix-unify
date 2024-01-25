@@ -1,0 +1,62 @@
+const fileDB = '$(state)/fileDB'
+const newFileDB = '$(tmpState)/fileDB'
+
+proc update-link(source, target) {
+  if test -L "$target" {
+    # file exists and is a link
+    if readlink "$source" != "$target" {
+      # update if necesasry
+      rm-link "$source" "$target"
+    }
+  } elif test -e "$target" {
+    die "trying to create link at $target, but is a user-managed file"
+  }
+}
+
+func array-remove(array, el) {
+
+}
+
+func array-contains(array, el) {
+
+}
+
+# target links: { etc = { source(rel etc) = dest(rel etc); }; sw = { source(rel sw) = dest; } }
+# db: long array of links
+
+proc realise-link(source, target) {
+  update-link (source) (target) # TODO: graceful error handling
+  echo "$target" >> "$newFileDB"
+}
+
+func find-old(newDB, oldDB) {
+
+}
+
+proc prune-old {
+  const newDB = @[split($(cat "$newFileDB"))]
+  const oldDB = @[split($(cat "$fileDB"))]
+
+  const remove = call findOLD(newDB, oldDB)
+  for i, link in (remove) {
+    rm -fv "$link"
+  }
+  mv "$newFileDB" "$fileDB"
+}
+
+proc realise-target-links(target) {
+  rm-link "$etc" /etc/static
+
+  # we are linking to links here, so we can update all of
+  # the existing at once instead of recreating them each time
+
+  for i, k, v in (target.etc) {
+    realise-link "/etc/static/$k" "/etc/$v"
+  }
+
+  for i, k, v in (target.sw) {
+    realise-link "/run/current-system/sw/$k" "/$v"
+  }
+
+  prune-old
+}
