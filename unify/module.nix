@@ -16,10 +16,10 @@ in
 
     modules = {
       mergePath = {
-        enable = mkEnableOption "path merging. /run/current-system/sw/bin will be appended to system path";
+        enable = mkEnableOption "path merging. /run/current-system/sw/bin will be appended to system path" // { default = true; };
       };
       etcMerge = {
-        enable = mkEnableOption "etc merge module";
+        enable = mkEnableOption "etc merge module" // { default = true; };
 
         files = mkOption {
           description = "Add the following files to host /etc, symlinked from nix";
@@ -101,11 +101,18 @@ in
       };
     };
 
-    system.extraSystemBuilderCmds = ''
+    system.extraSystemBuilderCmds = let
+      unify_primer = lib.escapeShellArg
+        (mapAttrsToList (mod: cfg:
+          ''handler ${mod} ${if cfg.enable then "install" else "uninstall"}''
+        ) cfg.modules);
+    in ''
       cp "${cfgFile.generate "unify.json" cfg.modules}" $out/unify.json
 
-      # add our custom unify
+      # add unify
       install -D ${pkgs.nix-unify.script}/unify.sh $out/bin/unify
+      echo ${unify_primer} >> $out/bin/unify
+
       substituteInPlace $out/bin/unify \
         --subst-var-by toplevel $out \
         --subst-var-by etc ${config.system.build.etc}/etc \

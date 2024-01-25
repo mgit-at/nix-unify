@@ -34,7 +34,8 @@ handler() {
   PLUGIN="$1"
   MARKER="$state/_installed_$PLUGIN"
   ACTION="$2"
-  VERSION="$3"
+  VERSION_VAR="version_$PLUGIN"
+  VERSION="${!VERSION_VAR}"
 
   if [ "$ACTION" = "uninstall" ] && ([ -e "$MARKER" ] || [ "$(cat "$MARKER")" != "$VERSION" ]) && fnc "uninstall_$PLUGIN"; then
     "uninstall_$PLUGIN"
@@ -60,6 +61,8 @@ fnc() {
 }
 
 # mergePath: Append /run/current-system/sw/bin to PATH
+
+version_mergePath="0"
 
 install_mergePath() {
   #if cat /etc/environment | grep PATH; then
@@ -87,6 +90,8 @@ uninstall_mergePath() {
 
 # etcMerge: Link some files into host's etc
 
+version_etcMerge="1"
+
 install_etcMerge() {
   touch "$state/etcMerge"
 }
@@ -100,11 +105,6 @@ uninstall_etcMerge() {
   # remove all files
   rm -f /etc/static
 }
-
-# Execute (todo: autogenerate)
-
-handler mergePath install 0
-handler etcMerge install 1
 
 # TODO
 # symlink everything, add to db, purge old
