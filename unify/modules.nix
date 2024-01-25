@@ -13,15 +13,6 @@ in
     useNixDaemon = {
       enable = mkEnableOption "usage of nix-unify provided daemon instead of nix install script daemon." // { default = true; };
     };
-    etcMerge = {
-      enable = mkEnableOption "etc merge module" // { default = true; };
-
-      files = mkOption {
-        description = "Add the following files to host /etc, symlinked from nix";
-        default = [];
-        type = types.listOf types.str;
-      };
-    };
     shareNftables = {
       enable = mkEnableOption "nftables rules";
     };

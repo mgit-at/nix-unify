@@ -17,6 +17,7 @@
         # > Our main nixos configuration file <
         modules = [
           ./test/base.nix
+          ./test/example.nix
         ];
       };
     };
