@@ -14,5 +14,10 @@ vmTools.runInLinuxVM (
   }
   ''
     # run test
+    # tests:
+    # - basic install: check if everything runs through
+    # - boot-persistence: check if the early boot script runs
+    # - install properly: check, for each module, if it works
+    # - leave system untouched: check for any differences after uninstall
   ''
 )

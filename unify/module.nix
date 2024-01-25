@@ -18,6 +18,9 @@ in
       mergePath = {
         enable = mkEnableOption "path merging. /run/current-system/sw/bin will be appended to system path" // { default = true; };
       };
+      useNixDaemon = {
+        enable = mkEnableOption "usage of nix-unify provided daemon instead of nix install script daemon." // { default = true; };
+      };
       etcMerge = {
         enable = mkEnableOption "etc merge module" // { default = true; };
 
@@ -103,9 +106,9 @@ in
 
     system.extraSystemBuilderCmds = let
       unify_primer = lib.escapeShellArg
-        (mapAttrsToList (mod: cfg:
+      (concatStringsSep "\n" (mapAttrsToList (mod: cfg:
           ''handler ${mod} ${if cfg.enable then "install" else "uninstall"}''
-        ) cfg.modules);
+        ) cfg.modules));
     in ''
       cp "${cfgFile.generate "unify.json" cfg.modules}" $out/unify.json
 

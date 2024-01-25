@@ -88,6 +88,18 @@ uninstall_mergePath() {
   true
 }
 
+# useNixDaemon: manage nix daemon via unify
+
+version_useNixDaemon="0"
+
+install_useNixDaemon() {
+  true
+}
+
+uninstall_useNixDaemon() {
+  true
+}
+
 # etcMerge: Link some files into host's etc
 
 version_etcMerge="1"
