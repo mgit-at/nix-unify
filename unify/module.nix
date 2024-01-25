@@ -6,14 +6,19 @@ let
   cfg = config.nix-unify;
   cfgFile = pkgs.formats.json {};
 
-  fileSub = { ... }: {
-    enable = mkOption {
-      type = types.bool;
-      default = true;
-    };
+  fileSub = with types; { name, config, options, ... }: {
+    options = {
+      enable = mkOption {
+        type = bool;
+        default = true;
+      };
 
-    target = mkOption {
-      type = types.str;
+      target = mkOption {
+        type = str;
+      };
+    };
+    config = {
+      target = mkDefault name;
     };
   };
 in
@@ -23,24 +28,17 @@ in
     ./modules.nix
   ];
 
-  options.nix-unify = {
+  options.nix-unify = with types; {
     # enable = mkEnableOption "nix-unify";
 
     files = {
       etc = mkOption {
-        type = types.attrsOf mkSubmodule (fileSub);
+        type = attrsOf (submodule (fileSub));
+        default = {};
       };
       sw = mkOption {
-        type = types.attrsOf mkSubmodule (fileSub);
-      };
-    };
-
-    use = {
-      systemd = mkOption {
-        type = types.listOf types.str;
-      };
-      systemdNetwork = mkOption {
-        type = types.listOf types.str;
+        type = attrsOf (submodule (fileSub));
+        default = {};
       };
     };
   };
@@ -100,13 +98,8 @@ in
       };
     };
 
-    system.extraSystemBuilderCmds = let
-      unify_primer = lib.escapeShellArg
-      (concatStringsSep "\n" (mapAttrsToList (mod: cfg:
-          ''handler ${mod} ${if cfg.enable then "install" else "uninstall"}''
-        ) cfg.modules));
-    in ''
-      cp "${cfgFile.generate "unify.json" cfg.modules}" $out/unify.json
+    system.extraSystemBuilderCmds = ''
+      cp "${cfgFile.generate "unify.json" cfg}" $out/unify.json
 
       # add unify
       install -D ${pkgs.nix-unify.script}/unify.ysh $out/bin/unify
@@ -114,8 +107,7 @@ in
       substituteInPlace $out/bin/unify \
         --subst-var-by toplevel $out \
         --subst-var-by etc ${config.system.build.etc}/etc \
-        --subst-var-by path ${config.system.path} \
-        --subst-var-by handlerblock ${unify_primer}
+        --subst-var-by path ${config.system.path}
 
       # replace switch-to-configuration
       rm -f $out/bin/switch-to-configuration

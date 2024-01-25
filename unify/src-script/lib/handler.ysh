@@ -1,16 +1,21 @@
-proc handler(module, action, version) {
-  var marker="$state/_installed_$module"
-  if "$action" === "uninstall" && (test -e "$marker" || "$(cat "$marker")" !== "$version") && fnc "uninstall_$module" {
-    "uninstall_$module"
-    rm -f "$MARKER"
+proc handler(module ; ctx, cfg) {
+  var marker = "$state/_installed_$module"
+  var action = "uninstall"
+  if (cfg.enabled) {
+    setvar action = "install"
   }
 
-  if "$action" === "install" && (! test -e "$marker" || "$(cat "$MARKER")" !== "$version") && fnc "install_$module" {
-    "install_$module"
+  if "$action" === "uninstall" && (test -e "$marker" || "$(cat "$marker")" !== "$version") && fnc "uninstall_$module" {
+    "uninstall_$module" (&ctx) (cfg)
+    rm -f "$marker"
+  }
+
+  if "$action" === "install" && (! test -e "$marker" || "$(cat "$marker")" !== "$version") && fnc "install_$module" {
+    "install_$module" (&ctx) (cfg)
     echo "$version" > "$marker"
   }
 
   if "$action" === "install" && fnc "execute_$module" {
-    "execute_$module"
+    "execute_$module" (&ctx) (cfg)
   }
 }

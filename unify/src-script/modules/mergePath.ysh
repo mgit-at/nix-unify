@@ -19,5 +19,5 @@ proc install {
 }
 
 proc uninstall {
-
+  true
 }

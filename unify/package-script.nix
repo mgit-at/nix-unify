@@ -18,6 +18,7 @@ stdenv.mkDerivation {
 
   buildPhase = ''
     patchShebangs .
+    handlerblock=""
     for f in modules/*.ysh; do
       mod=$(basename "$f" .ysh)
       sed \
@@ -25,10 +26,13 @@ stdenv.mkDerivation {
         -e "s|^var |var $mod_|g" \
         -e "s|^proc |proc $mod_|g" \
         -i "$f"
+      handlerblock="''${handlerblock}
+      handler \"$mod\" (&ctx) (&cfg.modules.$mod)"
     done
     srcblock=""
     for f in lib/*.ysh modules/*.ysh; do
-      srcblock="''${srcblock}source $out/$f\n"
+      srcblock="''${srcblock}
+      source $out/$f"
     done
 
     substituteInPlace unify.ysh \
@@ -38,7 +42,8 @@ stdenv.mkDerivation {
         gnugrep
         gnused
       ]} \
-      --subst-var-by srcblock "$srcblock"
+      --subst-var-by srcblock "$srcblock" \
+      --subst-var-by handlerblock "$handlerblock"
   '';
 
   installPhase = ''

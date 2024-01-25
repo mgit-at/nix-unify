@@ -9,9 +9,11 @@ const toplevel = '@toplevel@'
 const state = '/var/nix-unify'
 const tmpState = '/run/nix-unify'
 
-export PATH = '@path@'
+const etc = '@etc@'
+const sw = '@path@'
+
+export PATH='@PATH@'
 var cfg
-var links
 
 @srcblock@
 
@@ -20,23 +22,27 @@ proc rm-link(src, target) {
   ln -sf "$src" "$target"
 }
 
-proc main(cmd) {
-  if (cmd === "at_boot") || ! test --file /run/booted-system {
+proc main(cmd ; cfg) {
+  if (cmd === "at_boot") {
+    rm-link "$toplevel" /run/booted-system
+  }
+  if ! test --file /run/booted-system {
     rm-link "$toplevel" /run/booted-system
   }
 
   rm-link "$toplevel" /run/current-system
 
-  links = cfg.links
+  var links = cfg.files
+  var ctx = { links: links }
 
   @handlerblock@
 
-  realise-target-links (links)
+  realise-target-links (ctx.links)
 }
 
 if is-main {
-  cat "$toplevel/unify.json" json read (&cfg)
+  cat "$toplevel/unify.json" | json read (&cfg)
   mkdir -p "$state"
   mkdir -p "$tmpState"
-  main @ARGV
+  main @ARGV (cfg)
 }

@@ -13,12 +13,20 @@ proc update-link(source, target) {
   }
 }
 
-func array-remove(array, el) {
-
-}
-
-func array-contains(array, el) {
-
+# returns all elements of arraya that are not in arrayb
+# (a=old, b=new)
+func arrayFindNonShared(arraya, arrayb, nonshared) {
+  for item in (arraya) {
+    var contains = false
+    for itemcomp in (arrayb) {
+      if (itemcomp === item) {
+        setvar contains = true
+      }
+    }
+    if ! (contains) {
+      append $item (nonshared)
+    }
+  }
 }
 
 # target links: { etc = { source(rel etc) = dest(rel etc); }; sw = { source(rel sw) = dest; } }
@@ -29,16 +37,13 @@ proc realise-link(source, target) {
   echo "$target" >> "$newFileDB"
 }
 
-func find-old(newDB, oldDB) {
-
-}
-
 proc prune-old {
-  const newDB = @[split($(cat "$newFileDB"))]
-  const oldDB = @[split($(cat "$fileDB"))]
+  var newDB = split("$(cat "$newFileDB")")
+  var oldDB = split("$(cat "$fileDB")")
 
-  const remove = call findOLD(newDB, oldDB)
-  for i, link in (remove) {
+  var remove = []
+  call arrayFindNonShared(oldDB, newDB, &remove)
+  for link in (remove) {
     rm -fv "$link"
   }
   mv "$newFileDB" "$fileDB"
@@ -51,11 +56,15 @@ proc realise-target-links(target) {
   # the existing at once instead of recreating them each time
 
   for i, k, v in (target.etc) {
-    realise-link "/etc/static/$k" "/etc/$v"
+    if (v.enable) {
+      realise-link "/etc/static/$k" "/etc/$[v.target]"
+    }
   }
 
   for i, k, v in (target.sw) {
-    realise-link "/run/current-system/sw/$k" "/$v"
+    if (v.enable) {
+      realise-link "/run/current-system/sw/$k" "/$[v.target]"
+    }
   }
 
   prune-old
