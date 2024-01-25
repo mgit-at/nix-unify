@@ -1,23 +1,27 @@
 module mergePath || return
 
-const VERSION = '1'
+proc main(; ; ctx, cfg) {
+  if (cfg.enable) {
+    #if ! try versioned-marker "mergePath" "1" {
+      # HACK: append properly
+      sed "s|/snap/bin|/snap/bin:/run/current-system/sw/bin|" -i /etc/environment
+      sed "s|/snap/bin|/snap/bin:/run/current-system/sw/bin|" -i /etc/sudoers
 
-proc install {
-  # HACK: append properly
-  sed "s|/snap/bin|/snap/bin:/run/current-system/sw/bin|" -i /etc/environment
-  sed "s|/snap/bin|/snap/bin:/run/current-system/sw/bin|" -i /etc/sudoers
-
-  for shell in /etc/bashrc /etc/profile.d/unify.sh /etc/zshrc /etc/bash.bashrc {
-    if ! test --file $shell {
-      touch "$shell"
-      chmod +x "$shell"
-    }
-    if ! grep "Nix-Unify" "$shell" >/dev/null 2>/dev/null {
-      cat "$self/unify-load-profile.sh" >> "$shell"
-    }
+      for shell in /etc/bashrc /etc/profile.d/unify.sh /etc/zshrc /etc/bash.bashrc {
+        if ! test --file $shell {
+          touch "$shell"
+          chmod +x "$shell"
+        }
+        if ! grep "Nix-Unify" "$shell" >/dev/null 2>/dev/null {
+          cat "$self/unify-load-profile.sh" >> "$shell"
+        }
+      }
+      write-versioned-marker "mergePath" "1"
+    #}
+  } else {
+    #if try marker "mergePath" {
+      true # remove
+      remove-marker "mergePath"
+    #}
   }
-}
-
-proc uninstall {
-  true
 }

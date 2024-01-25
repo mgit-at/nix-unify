@@ -35,6 +35,9 @@ proc main(cmd ; cfg) {
   var links = cfg.files
   var ctx = { links: links }
 
+  setvar ctx.links.etc = {}
+  setvar ctx.links.sw = {}
+
   @handlerblock@
 
   realise-target-links (ctx.links)

@@ -1,9 +1,9 @@
 module shareSystemd || return
 
-const VERSION = '1'
-
-proc execute(; ctx, cfg) {
-  for unit in (cfg.units) {
-    setvar cfg.links.etc["systemd/system/$unit"] = { enable: true, target: "systemd/system/$unit" }
+proc main(; ; ctx, cfg) {
+  if (cfg.enable) {
+    for unit in (cfg.units) {
+      setvar ctx.links.etc["systemd/system/$unit"] = { enable: true, target: "systemd/system/$unit" }
+    }
   }
 }

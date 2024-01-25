@@ -22,12 +22,10 @@ stdenv.mkDerivation {
     for f in modules/*.ysh; do
       mod=$(basename "$f" .ysh)
       sed \
-        -e "s|^const |const ''${mod}_|g" \
-        -e "s|^var |var ''${mod}_|g" \
-        -e "s|^proc |proc ''${mod}_|g" \
+        -e "s|^proc main|proc ''${mod}_main|g" \
         -i "$f"
       handlerblock="''${handlerblock}
-      handler \"$mod\" (&ctx) (&cfg.modules.$mod)"
+      ''${mod}_main (ctx=ctx, cfg=cfg.modules.$mod)"
     done
     srcblock=""
     for f in lib/*.ysh modules/*.ysh; do

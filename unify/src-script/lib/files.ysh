@@ -1,5 +1,5 @@
-const fileDB = '$(state)/fileDB'
-const newFileDB = '$(tmpState)/fileDB'
+const fileDB = "$state/fileDB"
+const newFileDB = "$tmpState/fileDB"
 
 proc update-link(source, target) {
   if test -L "$target" {
@@ -10,6 +10,10 @@ proc update-link(source, target) {
     }
   } elif test -e "$target" {
     die "trying to create link at $target, but is a user-managed file"
+  } else {
+    # create
+    mkdir -p "$(dirname "$target")"
+    rm-link "$source" "$target"
   }
 }
 
@@ -23,7 +27,7 @@ func arrayFindNonShared(arraya, arrayb, nonshared) {
         setvar contains = true
       }
     }
-    if ! (contains) {
+    if (not contains) {
       append $item (nonshared)
     }
   }
@@ -33,11 +37,13 @@ func arrayFindNonShared(arraya, arrayb, nonshared) {
 # db: long array of links
 
 proc realise-link(source, target) {
-  update-link (source) (target) # TODO: graceful error handling
+  update-link "$source" "$target" # TODO: graceful error handling
   echo "$target" >> "$newFileDB"
 }
 
 proc prune-old {
+  touch "$fileDB"
+
   var newDB = split("$(cat "$newFileDB")")
   var oldDB = split("$(cat "$fileDB")")
 
@@ -49,7 +55,7 @@ proc prune-old {
   mv "$newFileDB" "$fileDB"
 }
 
-proc realise-target-links(target) {
+proc realise-target-links(; target) {
   rm-link "$etc" /etc/static
 
   # we are linking to links here, so we can update all of

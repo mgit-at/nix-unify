@@ -1,21 +1,36 @@
-proc handler(module ; ctx, cfg) {
-  var marker = "$state/_installed_$module"
-  var action = "uninstall"
-  if (cfg.enabled) {
-    setvar action = "install"
+proc versioned-marker(name, version) {
+  var marker = "$state/_marker_$name"
+  if ! test -e "$marker" {
+    exit 1
+  }
+  if "$(cat "$marker")" !== "$version" {
+    exit 1
   }
 
-  if "$action" === "uninstall" && (test -e "$marker" || "$(cat "$marker")" !== "$version") && fnc "uninstall_$module" {
-    "uninstall_$module" (&ctx) (cfg)
-    rm -f "$marker"
+  exit 0
+}
+
+proc write-versioned-marker(name, version) {
+  var marker = "$state/_marker_$name"
+  echo "$version" > "$marker"
+}
+
+proc marker(name) {
+  var marker = "$state/_marker_$name"
+
+  if ! test -e "$marker" {
+    exit 1
   }
 
-  if "$action" === "install" && (! test -e "$marker" || "$(cat "$marker")" !== "$version") && fnc "install_$module" {
-    "install_$module" (&ctx) (cfg)
-    echo "$version" > "$marker"
-  }
+  exit 0
+}
 
-  if "$action" === "install" && fnc "execute_$module" {
-    "execute_$module" (&ctx) (cfg)
-  }
+proc write-marker(name) {
+  var marker = "$state/_marker_$name"
+  touch "$marker"
+}
+
+proc remove-marker(name) {
+  var marker = "$state/_marker_$name"
+  rm -f "$marker"
 }

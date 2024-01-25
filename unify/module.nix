@@ -98,6 +98,9 @@ in
       };
     };
 
+    # self-config
+    nix-unify.modules.shareSystemd.units = [ "nix-unify-at-boot.service" ];
+
     system.extraSystemBuilderCmds = ''
       cp "${cfgFile.generate "unify.json" cfg}" $out/unify.json
 
