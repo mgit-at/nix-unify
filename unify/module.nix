@@ -51,16 +51,57 @@ in
     # disable kernel and such
     boot.isContainer = true;
 
-    system.build.installBootLoader = pkgs.writeScript "install-lxd-sbin-init.sh" ''
-      #!${pkgs.runtimeShell}
-      ${pkgs.coreutils}/bin/ln -fs "$1/init" /sbin/init
-    '';
+    # for exposing etc/profile.d from, for ex, unify
+    environment.pathsToLink = [ "/etc/profile.d" ];
+
+    # for sharing networkd config with host
+    networking.useNetworkd = true;
+    # disable resolvconf, as it's default in containers
+    networking.resolvconf.enable = mkForce false;
+    networking.useHostResolvConf = mkForce false;
+    # don't do dhcp everywhere
+    networking.useDHCP = mkForce false;
+    # broken
+    systemd.network.wait-online.enable = false;
+
+    # making sure no legacy scripts are included
+    boot.initrd.systemd.enable = true;
+    # for sharing nftables config with host
+    networking.nftables.enable = true;
+
+    # causes many unnecessary rebuilds
+    environment.noXlibs = false;
+
+    # managment, etc/profile.d
+    environment.systemPackages = [
+      pkgs.nix-unify.path
+    ];
+
+    nixpkgs.overlays = [
+      (self: prev: {
+        nix-unify = { # TODO: scope
+          path = prev.callPackage ./package-path.nix {};
+          script = prev.callPackage ./package-script.nix {};
+        };
+      })
+    ];
+
+    systemd.services.nix-unify-at-boot = {
+      script = ''
+        /nix/var/nix/profiles/system/bin/unify at_boot
+      '';
+      wantedBy = [ "multi-user.target" ];
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+      };
+    };
 
     system.extraSystemBuilderCmds = ''
       cp "${cfgFile.generate "unify.json" cfg.modules}" $out/unify.json
 
       # add our custom unify
-      install -D ${./unify.sh} $out/bin/unify
+      install -D ${pkgs.nix-unify.script}/unify.sh $out/bin/unify
       substituteInPlace $out/bin/unify \
         --subst-var-by toplevel $out \
         --subst-var-by etc ${config.system.build.etc}/etc \

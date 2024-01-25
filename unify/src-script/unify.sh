@@ -1,6 +1,10 @@
 #!/bin/bash
 
-set -euxo pipefail
+set -euo pipefail
+
+export PATH=@PATH@
+
+self=@self@
 
 toplevel=@toplevel@
 etc=@etc@
@@ -12,10 +16,16 @@ state="/var/nix-unify"
 
 mkdir -p "$state"
 
+if [ -e "$state/DEBUG" ]; then
+  set -x
+fi
+
 if [ "$cmd" = "at_boot" ] || [ ! -e /run/booted-system ]; then
+  rm -f /run/booted-system
   ln -sf "$toplevel" /run/booted-system
 fi
 
+rm -f /run/current-system
 ln -sf "$toplevel" /run/current-system
 
 # lib
@@ -58,6 +68,17 @@ install_mergePath() {
   # HACK: append properly
   sed "s|/snap/bin|/snap/bin:/run/current-system/sw/bin|" -i /etc/environment
   sed "s|/snap/bin|/snap/bin:/run/current-system/sw/bin|" -i /etc/sudoers
+
+  for shell in /etc/bashrc /etc/profile.d/unify.sh /etc/zshrc /etc/bash.bashrc; do
+    if [ ! -e "$shell" ]; then
+      touch "$shell"
+      chmod +x "$shell"
+    fi
+
+    if ! grep "Nix-Unify" "$shell" >/dev/null 2>/dev/null; then
+      cat "$self/unify-load-profile.sh" >> "$shell"
+    fi
+  done
 }
 
 uninstall_mergePath() {
