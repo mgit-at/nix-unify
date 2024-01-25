@@ -86,14 +86,18 @@ in
       })
     ];
 
+    # early-boot init
+    # see https://raspberrypi.stackexchange.com/a/77999
     systemd.services.nix-unify-at-boot = {
       script = ''
         /nix/var/nix/profiles/system/bin/unify at_boot
       '';
-      wantedBy = [ "multi-user.target" ];
+      before = [ "basic.target" ];
+      after = [ "local-fs.target" "sysinit.target" ];
       serviceConfig = {
         Type = "oneshot";
         RemainAfterExit = true;
+        DefaultDependencies = "no";
       };
     };
 
