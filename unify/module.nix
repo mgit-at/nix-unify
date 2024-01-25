@@ -9,28 +9,11 @@ in
 {
   imports = [
     "${modulesPath}/profiles/minimal.nix"
+    ./modules.nix
   ];
 
   options.nix-unify = {
     # enable = mkEnableOption "nix-unify";
-
-    modules = {
-      mergePath = {
-        enable = mkEnableOption "path merging. /run/current-system/sw/bin will be appended to system path" // { default = true; };
-      };
-      useNixDaemon = {
-        enable = mkEnableOption "usage of nix-unify provided daemon instead of nix install script daemon." // { default = true; };
-      };
-      etcMerge = {
-        enable = mkEnableOption "etc merge module" // { default = true; };
-
-        files = mkOption {
-          description = "Add the following files to host /etc, symlinked from nix";
-          default = [];
-          type = types.listOf types.str;
-        };
-      };
-    };
 
     files = mkOption {
       type = types.attrsOf mkSubmodule ({ ... }: {
@@ -58,7 +41,7 @@ in
     environment.pathsToLink = [ "/etc/profile.d" ];
 
     # for sharing networkd config with host
-    networking.useNetworkd = true;
+    networking.useNetworkd = mkForce true;
     # disable resolvconf, as it's default in containers
     networking.resolvconf.enable = mkForce false;
     networking.useHostResolvConf = mkForce false;
@@ -68,9 +51,10 @@ in
     systemd.network.wait-online.enable = false;
 
     # making sure no legacy scripts are included
-    boot.initrd.systemd.enable = true;
+    boot.initrd.systemd.enable = mkForce true;
     # for sharing nftables config with host
-    networking.nftables.enable = true;
+    networking.nftables.enable = mkForce true;
+    networking.nftables.flushRuleset = mkForce false;
 
     # causes many unnecessary rebuilds
     environment.noXlibs = false;

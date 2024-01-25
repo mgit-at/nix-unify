@@ -35,7 +35,7 @@ handler() {
   MARKER="$state/_installed_$PLUGIN"
   ACTION="$2"
   VERSION_VAR="version_$PLUGIN"
-  VERSION="${!VERSION_VAR}"
+  VERSION="${!VERSION_VAR:-0}"
 
   if [ "$ACTION" = "uninstall" ] && ([ -e "$MARKER" ] || [ "$(cat "$MARKER")" != "$VERSION" ]) && fnc "uninstall_$PLUGIN"; then
     "uninstall_$PLUGIN"
