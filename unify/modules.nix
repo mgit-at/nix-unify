@@ -23,6 +23,11 @@ in
         default = [];
         type = types.listOf types.str;
       };
+      replace = mkOption {
+        description = "Replace those units regardless of whether they already exist on the host";
+        default = [];
+        type = types.listOf types.str;
+      };
     };
   };
 

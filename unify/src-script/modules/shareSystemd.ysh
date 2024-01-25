@@ -4,6 +4,9 @@ proc main(; ; ctx, cfg) {
   if (cfg.enable) {
     for unit in (cfg.units) {
       setvar ctx.links.etc["systemd/system/$unit"] = { enable: true, target: "systemd/system/$unit" }
+      # todo: get and link dependencies if not on host
     }
   }
+  # todo: daemon-reload
+  # todo: call systemctl enable
 }

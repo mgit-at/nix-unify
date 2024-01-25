@@ -65,6 +65,8 @@ in
     # for sharing nftables config with host
     networking.nftables.enable = mkForce true;
     networking.nftables.flushRuleset = mkForce false;
+    # lookout protection
+    networking.firewall.allowedTCPPorts = mkDefault [ 22 ];
 
     # causes many unnecessary rebuilds
     environment.noXlibs = false;
