@@ -38,16 +38,15 @@ proc main(cmd ; cfg) {
   var links = cfg.files
   var ctx = { links: links }
 
-  setvar ctx.links.etc = {}
-  setvar ctx.links.sw = {}
-
   @handlerblock@
 
   realise-target-links (ctx.links)
 }
 
 if is-main {
+  cat "$toplevel/unify.json"
   cat "$toplevel/unify.json" | json read (&cfg)
+  json write (cfg)
   mkdir -p "$state"
   mkdir -p "$tmpState"
   main @ARGV (cfg)

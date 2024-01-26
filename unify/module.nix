@@ -83,6 +83,7 @@ in
           path = prev.callPackage ./package-path.nix {};
           script = prev.callPackage ./package-script.nix {};
         };
+        oil = prev.callPackage ./oils.nix {};
       })
     ];
 
