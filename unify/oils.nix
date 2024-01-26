@@ -5,11 +5,11 @@
 
 stdenv.mkDerivation rec {
   pname = "oils-ci";
-  version = "5996"; # Version of the github job...
+  version = "6015"; # Version of the github job...
 
   src = pkgs.fetchurl {
-    url = "http://travis-ci.oilshell.org/github-jobs/git-89df688a7a62addff2a0a4c27e92aff044892093/oils-for-unix.tar";
-    hash = "sha256-6YrTbsKfpsuvYOmCljz094wxiH1XSxE2EzNVyQ8xMmY=";
+    url = "http://travis-ci.oilshell.org/github-jobs/6015/cpp-tarball.wwz/_release/oils-for-unix.tar";
+    hash = "sha256-TFbzcbdpqKw7J12iNtKPgJQ2g/8Ed84edcKeDfGdDuI=";
   };
 
   patchPhase = ''
