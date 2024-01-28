@@ -1,0 +1,6 @@
+module shareNftables || return
+
+proc describe(; ; cfg) {
+  d_t "share nftables"
+  d_e (cfg)
+}
