@@ -38,5 +38,20 @@ in
         replace = [ "nftables.service" ];
       };
     })
+    (mkIf (cfg.shareSystemd.enable) {
+      nix-unify.files.etc."systemd/system/service.d/zzz-nix-unify.conf" = {};
+
+      # fix /nix/store in restricted services
+      systemd.packages = [
+        (pkgs.writeTextFile {
+          name = "systemd-nix-unify-service-overrides";
+          destination = "/etc/systemd/system/service.d/zzz-nix-unify.conf";
+          text = ''
+            [Service]
+            ReadOnlyPaths=/nix/store
+          '';
+        })
+      ];
+    })
   ];
 }
