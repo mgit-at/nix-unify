@@ -18,9 +18,7 @@ stdenv.mkDerivation {
   ];
 
   buildPhase = ''
-    patchShebangs .
-    handlerblock=""
-    for h in hook_files final; do
+    doHook() {
       for f in modules/*.ysh; do
         if grep "proc $h" "$f" >/dev/null 2>/dev/null; then
           mod=$(basename "$f" .ysh)
@@ -32,7 +30,13 @@ stdenv.mkDerivation {
         fi
       done
       handlerblock="''${handlerblock}
-''$h (ctx=ctx, cfg=cfg.modules.$mod)"
+''$h (ctx=ctx, cfg=cfg)"
+    }
+
+    patchShebangs .
+    handlerblock=""
+    for h in hook_files final; do
+      doHook
     done
     srcblock=""
     for f in lib/*.ysh modules/*.ysh; do
@@ -50,6 +54,12 @@ stdenv.mkDerivation {
       ]} \
       --subst-var-by srcblock "$srcblock" \
       --subst-var-by handlerblock "$handlerblock"
+
+    handlerblock="$srcblock"
+    h="describe"
+    doHook
+    echo "$handlerblock" > unify-overview.ysh
+    chmod +x unify-overview.ysh
   '';
 
   installPhase = ''

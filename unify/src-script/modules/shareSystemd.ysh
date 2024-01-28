@@ -1,8 +1,16 @@
 module shareSystemd || return
 
+proc describe(; ; cfg) {
+  d_t "share systemd"
+  d_e (cfg)
+  var unitsShared = split("$(cat "$state/unitsShared")")
+  d_l "units shared" (unitsShared)
+}
+
 proc hook_files(; ; ctx, cfg) {
   if (cfg.enable) {
     setvar ctx.systemdLink = []
+    echo "" > "$state/unitsShared"
     for unit in (cfg.unitsResolved) {
       var frag=$(systemctl show "$unit" -p FragmentPath --value)
       if (frag === "") {
@@ -15,6 +23,7 @@ proc hook_files(; ; ctx, cfg) {
       # TODO: forceReplace support
     }
     for unit in (ctx.systemdLink) {
+      echo "$unit" >> "$state/unitsShared"
       maybe-link "systemd/system/$unit" (ctx)
       maybe-link "systemd/system/$unit.d" (ctx)
       # todo: get and link dependencies if not on host

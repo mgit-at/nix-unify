@@ -115,6 +115,7 @@ in
 
       # add unify
       install -D ${pkgs.nix-unify.script}/unify.ysh $out/bin/unify
+      install -D ${pkgs.nix-unify.script}/unify-overview.ysh $out/.unify-overview.ysh
 
       substituteInPlace $out/bin/unify \
         --subst-var-by toplevel $out \

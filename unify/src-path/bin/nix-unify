@@ -1,3 +1,17 @@
 #!/usr/bin/env ysh
 
 echo "nix-unify is installed"
+
+var ctx = {}
+var cfg
+
+const toplevel = '/run/current-system'
+const state = '/var/nix-unify'
+const tmpState = '/run/nix-unify'
+
+const etc = '/run/current-system/etc'
+const sw = '/run/current-system/sw'
+
+cat "$toplevel/unify.json" | json read (&cfg)
+
+source "$toplevel/.unify-overview.ysh"

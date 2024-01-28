@@ -1,0 +1,26 @@
+proc d_t(title) {
+  echo
+  echo "### $title ###"
+  echo
+}
+
+proc d_e (; cfg) {
+  if (cfg.enable) {
+    echo "- status: enabled"
+  } else {
+    echo "- status: disabled"
+  }
+}
+
+proc d_l(title; list) {
+  echo "- $title:"
+  for item in (list) {
+    echo " * $item"
+  }
+}
+
+proc describe(; ; cfg) {
+  d_t "files"
+  var currentlyLinked = split("$(cat "$fileDB")")
+  d_l "currently linked" (currentlyLinked)
+}

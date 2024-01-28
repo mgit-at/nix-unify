@@ -1,5 +1,10 @@
 module mergePath || return
 
+proc describe(; ; cfg) {
+  d_t "merge path"
+  d_e (cfg)
+}
+
 proc final(; ; ctx, cfg) {
   if (cfg.enable) {
     #if ! try versioned-marker "mergePath" "1" {
