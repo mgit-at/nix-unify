@@ -75,3 +75,9 @@ proc realise-target-links(; target) {
 
   prune-old
 }
+
+proc maybe-link(path ; ctx ) {
+  if test -e "$etc/$path" {
+    setvar ctx.links.etc["$path"] = { enable: true, target: path }
+  }
+}

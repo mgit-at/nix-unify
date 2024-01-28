@@ -25,6 +25,14 @@ proc rm-link(src, target) {
 # TODO: create links "just in time" with calls to function instead of collecting them?
 # or use concept of "after script" (ctx.script = '')
 
+proc hook_files( ; ; ctx, cfg) {
+  realise-target-links (ctx.links)
+}
+
+proc final( ; ; ctx, cfg) {
+  true
+}
+
 proc main(cmd ; cfg) {
   if (cmd === "at_boot") {
     rm-link "$toplevel" /run/booted-system
@@ -35,18 +43,13 @@ proc main(cmd ; cfg) {
 
   rm-link "$toplevel" /run/current-system
 
-  var links = cfg.files
-  var ctx = { links: links }
+  var ctx = { links: cfg.files }
 
   @handlerblock@
-
-  realise-target-links (ctx.links)
 }
 
 if is-main {
-  cat "$toplevel/unify.json"
   cat "$toplevel/unify.json" | json read (&cfg)
-  json write (cfg)
   mkdir -p "$state"
   mkdir -p "$tmpState"
   main @ARGV (cfg)

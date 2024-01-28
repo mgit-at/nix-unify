@@ -1,12 +1,15 @@
 module shareSystemd || return
 
-proc main(; ; ctx, cfg) {
+proc hook_files(; ; ctx, cfg) {
   if (cfg.enable) {
     for unit in (cfg.units) {
-      setvar ctx.links.etc["systemd/system/$unit"] = { enable: true, target: "systemd/system/$unit" }
+      maybe-link "systemd/system/$unit" (ctx)
+      maybe-link "systemd/system/$unit.d" (ctx)
       # todo: get and link dependencies if not on host
     }
   }
-  # todo: daemon-reload
-  # todo: call systemctl enable
+}
+
+proc final(; ; ctx, cfg) {
+  systemctl daemon-reload
 }

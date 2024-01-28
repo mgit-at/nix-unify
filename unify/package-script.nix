@@ -19,13 +19,19 @@ stdenv.mkDerivation {
   buildPhase = ''
     patchShebangs .
     handlerblock=""
-    for f in modules/*.ysh; do
-      mod=$(basename "$f" .ysh)
-      sed \
-        -e "s|^proc main|proc ''${mod}_main|g" \
-        -i "$f"
+    for h in hook_files final; do
+      for f in modules/*.ysh; do
+        if grep "proc $h" "$f" >/dev/null 2>/dev/null; then
+          mod=$(basename "$f" .ysh)
+          sed \
+            -e "s|^proc $h|proc ''${mod}_$h|g" \
+            -i "$f"
+          handlerblock="''${handlerblock}
+''${mod}_$h (ctx=ctx, cfg=cfg.modules.$mod)"
+        fi
+      done
       handlerblock="''${handlerblock}
-      ''${mod}_main (ctx=ctx, cfg=cfg.modules.$mod)"
+''$h (ctx=ctx, cfg=cfg.modules.$mod)"
     done
     srcblock=""
     for f in lib/*.ysh modules/*.ysh; do

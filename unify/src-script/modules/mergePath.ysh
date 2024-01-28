@@ -1,6 +1,6 @@
 module mergePath || return
 
-proc main(; ; ctx, cfg) {
+proc final(; ; ctx, cfg) {
   if (cfg.enable) {
     #if ! try versioned-marker "mergePath" "1" {
       # HACK: append properly
