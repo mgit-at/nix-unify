@@ -1,5 +1,11 @@
 #!/usr/bin/env ysh
 
+if test -e /etc/NIXOS {
+  echo "nix-unify is meant to be used on a host operating system that is not nixos" >&2
+  echo "It was detected that this machine is running NixOS, aborting." >&2
+  exit 2
+}
+
 ### Deploy script
 
 module main || return 0         # declaration, "include guard"
