@@ -19,6 +19,10 @@ proc hook_files(; ; ctx, cfg) {
       } elif ("$(readlink -f "$frag")" ~~ '/nix/*') {
         # is already installed nix unit
         call ctx.systemdLink->append (unit)
+      } elif (arrayContains(cfg.replace, unit)) {
+        # should be replaced
+        systemctl disable "$unit"
+        call ctx.systemdLink->append (unit)
       }
       # TODO: forceReplace support
     }

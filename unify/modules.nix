@@ -33,7 +33,10 @@ in
 
   config = mkMerge [
     (mkIf (cfg.shareNftables.enable) {
-      nix-unify.modules.shareSystemd.units = [ "nftables.service" ];
+      nix-unify.modules.shareSystemd = {
+        units = [ "nftables.service" ];
+        replace = [ "nftables.service" ];
+      };
     })
   ];
 }

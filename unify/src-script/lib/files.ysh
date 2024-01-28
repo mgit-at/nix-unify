@@ -35,6 +35,16 @@ func arrayFindNonShared(arraya, arrayb, nonshared) {
   }
 }
 
+func arrayContains(array, item) {
+  for comp in (array) {
+    if (comp === item) {
+      return (true)
+    }
+  }
+
+  return (false)
+}
+
 # target links: { etc = { source(rel etc) = dest(rel etc); }; sw = { source(rel sw) = dest; } }
 # db: long array of links
 
