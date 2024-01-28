@@ -11,5 +11,8 @@ proc hook_files(; ; ctx, cfg) {
 }
 
 proc final(; ; ctx, cfg) {
-  systemctl daemon-reload
+  if (cfg.enable) {
+    systemctl daemon-reload
+    # todo: systemctl enable everything
+  }
 }

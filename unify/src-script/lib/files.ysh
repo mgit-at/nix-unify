@@ -4,6 +4,7 @@ const newFileDB = "$tmpState/fileDB"
 proc update-link(source, target) {
   if test -L "$target" {
     # file exists and is a link
+    echo "update link: $target"
     if readlink "$source" != "$target" {
       # update if necesasry
       rm-link "$source" "$target"
@@ -11,6 +12,7 @@ proc update-link(source, target) {
   } elif test -e "$target" {
     die "trying to create link at $target, but is a user-managed file"
   } else {
+    echo "create link: $target"
     # create
     mkdir -p "$(dirname "$target")"
     rm-link "$source" "$target"
@@ -50,7 +52,8 @@ proc prune-old {
   var remove = []
   call arrayFindNonShared(oldDB, newDB, &remove)
   for link in (remove) {
-    rm -fv "$link"
+    echo "rm old link: $link"
+    rm -f "$link"
   }
   mv "$newFileDB" "$fileDB"
 }

@@ -5,6 +5,7 @@
 , coreutils
 , gnugrep
 , gnused
+, makeHostPassthrough
 }:
 
 stdenv.mkDerivation {
@@ -45,6 +46,7 @@ stdenv.mkDerivation {
         coreutils
         gnugrep
         gnused
+        (makeHostPassthrough { name = "systemctl"; })
       ]} \
       --subst-var-by srcblock "$srcblock" \
       --subst-var-by handlerblock "$handlerblock"

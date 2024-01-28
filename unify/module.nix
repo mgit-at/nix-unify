@@ -5,6 +5,7 @@ with lib;
 let
   cfg = config.nix-unify;
   cfgFile = pkgs.formats.json {};
+  visitUnit = import ./unit-resolver.nix;
 
   fileSub = with types; { name, config, options, ... }: {
     options = {
@@ -78,6 +79,7 @@ in
     ];
 
     nixpkgs.overlays = [
+      (import ./util)
       (self: prev: {
         nix-unify = { # TODO: scope
           path = prev.callPackage ./package-path.nix {};
@@ -107,7 +109,9 @@ in
     nix-unify.modules.shareSystemd.units = [ "nix-unify-at-boot.service" ];
 
     system.extraSystemBuilderCmds = ''
-      cp "${cfgFile.generate "unify.json" cfg}" $out/unify.json
+      cp "${cfgFile.generate "unify.json" (cfg //
+        { systemdDependenciesResolved = (visitUnit { inherit config; inherit lib; } cfg.modules.shareSystemd.units); }
+      )}" $out/unify.json
 
       # add unify
       install -D ${pkgs.nix-unify.script}/unify.ysh $out/bin/unify
