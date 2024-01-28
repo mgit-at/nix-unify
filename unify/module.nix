@@ -92,9 +92,6 @@ in
     # early-boot init
     # see https://raspberrypi.stackexchange.com/a/77999
     systemd.services.nix-unify-at-boot = {
-      script = ''
-        /nix/var/nix/profiles/system/bin/unify at_boot
-      '';
       before = [ "basic.target" ];
       after = [ "local-fs.target" "sysinit.target" ];
       wantedBy = [ "basic.target" ];
@@ -102,6 +99,7 @@ in
         Type = "oneshot";
         RemainAfterExit = true;
         DefaultDependencies = "no";
+        ExecStart = "/nix/var/nix/profiles/system/bin/unify at_boot";
       };
     };
 

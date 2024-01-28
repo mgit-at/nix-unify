@@ -10,7 +10,7 @@ proc describe(; ; cfg) {
 proc hook_files(; ; ctx, cfg) {
   if (cfg.enable) {
     setvar ctx.systemdLink = []
-    echo "" > "$state/unitsShared"
+    echo "" > "$tmpState/unitsShared"
     for unit in (cfg.unitsResolved) {
       var frag=$(systemctl show "$unit" -p FragmentPath --value)
       if (frag === "") {
@@ -21,27 +21,26 @@ proc hook_files(; ; ctx, cfg) {
         call ctx.systemdLink->append (unit)
       } elif (arrayContains(cfg.replace, unit)) {
         # should be replaced
+        systemctl stop "$unit" || true
         systemctl disable "$unit"
         call ctx.systemdLink->append (unit)
       }
-      # TODO: forceReplace support
     }
     for unit in (ctx.systemdLink) {
-      echo "$unit" >> "$state/unitsShared"
+      echo "$unit" >> "$tmpState/unitsShared"
       maybe-link "systemd/system/$unit" (ctx)
       maybe-link "systemd/system/$unit.d" (ctx)
-      # todo: get and link dependencies if not on host
     }
+    mv "$tmpState/unitsShared" "$state/unitsShared"
   }
 }
 
 proc final(; ; ctx, cfg) {
   if (cfg.enable) {
     systemctl daemon-reload
-    # todo: systemctl enable everything
     for unit in (ctx.systemdLink) {
       systemctl enable "$unit"
     }
-
+    # todo: restart/reload as necessary (see switch-to-configuration.pl)
   }
 }
