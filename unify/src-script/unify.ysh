@@ -43,6 +43,8 @@ proc main(cmd ; cfg) {
 
   rm-link "$toplevel" /run/current-system
 
+  setvar cfg.modules.shareSystemd.unitsResolved = cfg.systemdDependenciesResolved
+
   var ctx = { links: cfg.files }
 
   @handlerblock@

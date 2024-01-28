@@ -26,4 +26,4 @@ let
     );
 in
 
-concatMap (u: visitUnit {} u)
+units: unique (concatMap (u: visitUnit {} u) units)

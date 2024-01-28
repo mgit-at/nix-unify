@@ -2,7 +2,19 @@ module shareSystemd || return
 
 proc hook_files(; ; ctx, cfg) {
   if (cfg.enable) {
-    for unit in (cfg.units) {
+    setvar ctx.systemdLink = []
+    for unit in (cfg.unitsResolved) {
+      var frag=$(systemctl show "$unit" -p FragmentPath --value)
+      if (frag === "") {
+        # doesn't exist
+        call ctx.systemdLink->append (unit)
+      } elif ("$(readlink -f "$frag")" ~~ '/nix/*') {
+        # is already installed nix unit
+        call ctx.systemdLink->append (unit)
+      }
+      # TODO: forceReplace support
+    }
+    for unit in (ctx.systemdLink) {
       maybe-link "systemd/system/$unit" (ctx)
       maybe-link "systemd/system/$unit.d" (ctx)
       # todo: get and link dependencies if not on host
@@ -14,5 +26,9 @@ proc final(; ; ctx, cfg) {
   if (cfg.enable) {
     systemctl daemon-reload
     # todo: systemctl enable everything
+    for unit in (ctx.systemdLink) {
+      systemctl enable "$unit"
+    }
+
   }
 }
