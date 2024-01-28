@@ -9,6 +9,8 @@ proc describe(; ; cfg) {
 
 proc hook_files(; ; ctx, cfg) {
   if (cfg.enable) {
+    # TODO: fix /nix/store being missing in restricted units
+
     setvar ctx.systemdLink = []
     echo "" > "$tmpState/unitsShared"
     for unit in (cfg.unitsResolved) {
