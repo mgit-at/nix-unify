@@ -61,6 +61,11 @@ in
     # broken
     systemd.network.wait-online.enable = false;
 
+    # new user managment
+    systemd.sysusers.enable = mkForce true;
+    users.mutableUsers = false;
+    users.allowNoPasswordLogin = true;
+
     # making sure no legacy scripts are included
     boot.initrd.systemd.enable = mkForce true;
     # for sharing nftables config with host
