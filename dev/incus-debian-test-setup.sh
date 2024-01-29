@@ -1,6 +1,6 @@
 #!/bin/bash
 
-incus launch images:ubuntu/23.10 unify-ubuntu
+incus launch images:debian/12 unify-debian
 sleep 10s
 echo "
 apt update
@@ -12,7 +12,7 @@ echo \"$(cat ~/.ssh/*pub)\" > /root/.ssh/authorized_keys
 chmod 600 -R /root/.ssh
 mkdir -p /var/nix-unify
 touch /var/nix-unify/DEBUG
-" | incus exec unify-ubuntu bash -
+" | incus exec unify-debian bash -
 echo 'for f in /nix/var/nix/profiles/default/bin/nix*; do
   ln -s "$f" "/usr/bin/$(basename "$f")"
-done' | incus exec unify-ubuntu bash -
+done' | incus exec unify-debian bash -
