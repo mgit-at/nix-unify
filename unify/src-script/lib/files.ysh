@@ -74,6 +74,8 @@ proc realise-target-links(; target) {
   # we are linking to links here, so we can update all of
   # the existing at once instead of recreating them each time
 
+  # TODO: merge flag that merges files. will also require "mergeStrategy" (hash-seperator, other comment types, etc)
+
   for i, k, v in (target.etc) {
     if (v.enable) {
       realise-link "/etc/static/$k" "/etc/$[v.target]"
