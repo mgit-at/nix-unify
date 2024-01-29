@@ -4,10 +4,10 @@ with lib;
 
 let
   cfg = config.nix-unify.modules;
-  mkList = attrs: {
+  mkList = attrs: mkOption ({
     default = [];
     type = types.listOf types.str;
-  } // attrs;
+  } // attrs);
 in
 {
   options.nix-unify.modules = {
@@ -37,15 +37,11 @@ in
     };
     shareSystemd = {
       enable = mkEnableOption "systemd units" // { default = true; };
-      units = mkOption {
+      units = mkList {
         description = "Units to share";
-        default = [];
-        type = types.listOf types.str;
       };
-      replace = mkOption {
+      replace = mkList {
         description = "Replace those units regardless of whether they already exist on the host";
-        default = [];
-        type = types.listOf types.str;
       };
     };
   };
@@ -55,11 +51,11 @@ in
       nix-unify = {
         modules = {
           shareSystemd = {
-            units = { "nix-daemon.service" };
+            units = [ "nix-daemon.service" ];
             replace = [ "nix-daemon.service" ];
           };
           shareUsers = {
-            forceUsers = (map (id: "nixbld${toString id}") (seq 1 32)) ++ [  ];
+            forceUsers = map (id: "nixbld${toString id}") (range 1 32);
             forceGroups = [ "nixbld" ];
           };
         };
