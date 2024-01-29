@@ -4,6 +4,10 @@ with lib;
 
 let
   cfg = config.nix-unify.modules;
+  mkList = attrs: {
+    default = [];
+    type = types.listOf types.str;
+  } // attrs;
 in
 {
   options.nix-unify.modules = {
@@ -14,7 +18,22 @@ in
       enable = mkEnableOption "usage of nix-unify provided daemon instead of nix install script daemon." // { default = true; };
     };
     shareNftables = {
-      enable = mkEnableOption "nftables rules";
+      enable = mkEnableOption "share nftables rules";
+    };
+    shareUsers = {
+      enable = mkEnableOption "share users";
+      ignoreUsers = mkList {
+        description = "Ignore certain users from being shared";
+      };
+      ignoreGroups = mkList {
+        description = "Ignore certain groups from being shared";
+      };
+      forceUsers = mkList {
+        description = "Claim certain users regardless of whether the host manages them";
+      };
+      forceGroups = mkList {
+        description = "Claim certain groups regardless of whether the host manages them";
+      };
     };
     shareSystemd = {
       enable = mkEnableOption "systemd units" // { default = true; };
@@ -32,6 +51,20 @@ in
   };
 
   config = mkMerge [
+    (mkIf (cfg.useNixDaemon.enable) {
+      nix-unify = {
+        modules = {
+          shareSystemd = {
+            units = { "nix-daemon.service" };
+            replace = [ "nix-daemon.service" ];
+          };
+          shareUsers = {
+            forceUsers = (map (id: "nixbld${toString id}") (seq 1 32)) ++ [  ];
+            forceGroups = [ "nixbld" ];
+          };
+        };
+      };
+    })
     (mkIf (cfg.shareNftables.enable) {
       nix-unify.modules.shareSystemd = {
         units = [ "nftables.service" ];
