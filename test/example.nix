@@ -5,7 +5,7 @@
   };
 
   networking.firewall.allowedTCPPorts = [
-    80 443
+    22 80 443
   ];
 
   networking.firewall.allowedUDPPorts = [
