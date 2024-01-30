@@ -9,12 +9,10 @@
   in {
 
     nixosConfigurations = {
-      # FIXME replace with your hostname
       test = nixpkgs.lib.nixosSystem {
         specialArgs = {
           inherit inputs outputs;
         };
-        # > Our main nixos configuration file <
         modules = [
           ./test/base.nix
           ./test/example.nix

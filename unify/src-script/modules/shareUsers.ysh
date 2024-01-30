@@ -4,3 +4,72 @@ proc describe(; ; cfg) {
   d_t "share users"
   d_e (cfg)
 }
+
+const outSysusers = "/run/sysusers.d/nixos.conf"
+const srcSysusers = "$etc/sysusers.d/00-nixos.conf"
+const userState = "$state/userState"
+
+# TODO: uid mapping if uid already exists
+
+proc final(; ; ctx, cfg) {
+  mkdir -p "$userState"
+#  var passwd = "$(cat "$etc/passwd")"
+#  var users = split("$passwd")
+#
+#  shvar IFS=":" {
+#    for user in (users) {
+#      var usplit = split("$user")
+#      echo @usplit
+#      # check if user exists in host
+#      # check if ignored/force replace
+#      # create managed flag: shareUsers/managed/$name
+#      # check if uid already used: create mapping shareUsers/mapping/$user -> uid
+#      # create new user/copy over all properties except name and uid
+#    }
+#  }
+  mkdir -p "$(dirname "$outSysusers")"
+  echo "# filtered from $srcSysusers" > "$outSysusers"
+
+  var line
+  cat "$srcSysusers" | while read --line (&line) {
+    var p=split("$line")
+    if (len(p) >= 2) {
+      var first=(p[0])
+      var second=(p[1])
+      var third
+      if (len(p) >= 3) {
+        setvar third=(p[2])
+      }
+
+      # use getent group 60 to check if group exists
+      var m="$userState/$first.$second"
+
+      if (first === "u") { # user
+        if test -e "$m" {
+          echo "$line" >> "$outSysusers"
+        } elif ! getent passwd "$second" >/dev/null 2>/dev/null {
+          touch "$m"
+          echo "$line" >> "$outSysusers"
+        }
+      } elif (first === "g") { # group
+        if test -e "$m" {
+          echo "$line" >> "$outSysusers"
+        } elif ! getent group "$second" >/dev/null 2>/dev/null {
+          touch "$m"
+          echo "$line" >> "$outSysusers"
+        }
+      } elif (first === "m") { # group membership
+        setvar m="$userState/$first.$second.$third"
+        # check if exists on host
+        if test -e "$m" {
+          echo "$line" >> "$outSysusers"
+        # } elif ! getent group "$second" | grep -E '[:,]'"$third"'(,|$)' >/dev/null 2>/dev/null {
+        } else {
+          echo "$line" >> "$outSysusers"
+        }
+      }
+    }
+  }
+
+  systemd-sysusers "$outSysusers"
+}

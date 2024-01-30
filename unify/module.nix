@@ -63,8 +63,10 @@ in
 
     # new user managment
     systemd.sysusers.enable = mkForce true;
-    users.mutableUsers = false;
+    users.mutableUsers = true;
     users.allowNoPasswordLogin = true;
+    system.etc.overlay.enable = true;
+    boot.kernelPackages = config.boot.zfs.package.latestCompatibleLinuxPackages;
 
     # making sure no legacy scripts are included
     boot.initrd.systemd.enable = mkForce true;

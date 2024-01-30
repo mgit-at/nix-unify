@@ -7,6 +7,8 @@ proc describe(; ; cfg) {
   d_l "units shared" (unitsShared)
 }
 
+# TODO: use systemd generator and place the files as symlinks into the generator dir
+
 proc hook_files(; ; ctx, cfg) {
   if (cfg.enable) {
     # TODO: fix /nix/store being missing in restricted units

@@ -6,6 +6,7 @@
 , gnugrep
 , gnused
 , makeHostPassthrough
+, getent
 }:
 
 stdenv.mkDerivation {
@@ -50,7 +51,8 @@ stdenv.mkDerivation {
         coreutils
         gnugrep
         gnused
-        (makeHostPassthrough { name = "systemctl"; })
+        getent
+        (makeHostPassthrough { name = "systemd"; bins = [ "systemctl" "systemd-sysusers" ]; })
       ]} \
       --subst-var-by srcblock "$srcblock" \
       --subst-var-by handlerblock "$handlerblock"
