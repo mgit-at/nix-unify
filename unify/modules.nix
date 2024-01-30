@@ -21,8 +21,8 @@ in
       enable = mkEnableOption "share nftables rules";
     };
     shareUsers = {
-      enable = mkEnableOption "share users";
-      ignoreUsers = mkList {
+      enable = mkEnableOption "share users" // { default = true; };
+      /* ignoreUsers = mkList {
         description = "Ignore certain users from being shared";
       };
       ignoreGroups = mkList {
@@ -33,7 +33,7 @@ in
       };
       forceGroups = mkList {
         description = "Claim certain groups regardless of whether the host manages them";
-      };
+      }; */
     };
     shareSystemd = {
       enable = mkEnableOption "systemd units" // { default = true; };
@@ -54,10 +54,10 @@ in
             units = [ "nix-daemon.service" ];
             replace = [ "nix-daemon.service" ];
           };
-          shareUsers = {
+          /* shareUsers = {
             forceUsers = map (id: "nixbld${toString id}") (range 1 32);
             forceGroups = [ "nixbld" ];
-          };
+          }; */
         };
       };
     })
