@@ -1,0 +1,13 @@
+---
+- name: Check if nix is installed
+  stat:
+    path: /nix/store
+  register: nix_store
+
+- name: Install nix
+  ansible.builtin.shell: |
+    yes y | sh <(curl -L https://nixos.org/nix/install) --daemon
+    for f in /nix/var/nix/profiles/default/bin/nix*; do
+      ln -s "$f" "/usr/bin/$(basename "$f")"
+    done
+  when: not nix_store.stat.exists
