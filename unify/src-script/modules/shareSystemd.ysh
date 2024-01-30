@@ -8,6 +8,7 @@ proc describe(; ; cfg) {
 }
 
 # TODO: use systemd generator and place the files as symlinks into the generator dir
+# ref: https://www.freedesktop.org/software/systemd/man/latest/systemd.generator.html
 
 proc hook_files(; ; ctx, cfg) {
   if (cfg.enable) {

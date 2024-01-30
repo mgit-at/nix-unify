@@ -1,13 +1,50 @@
 module shareUsers || return
 
-proc describe(; ; cfg) {
-  d_t "share users"
-  d_e (cfg)
-}
-
 const outSysusers = "/run/sysusers.d/nixos.conf"
 const srcSysusers = "$etc/sysusers.d/00-nixos.conf"
 const userState = "$state/userState"
+
+proc describe(; ; cfg) {
+  d_t "share users"
+  d_e (cfg)
+
+  var line
+  var users = []
+  var groups = []
+  var memberships = []
+  var nixbldinfo = false
+
+  cat "$outSysusers" | while read --line (&line) {
+    var p=split("$line")
+    if (len(p) >= 2) {
+      var first=(p[0])
+      var second=(p[1])
+      var third
+      if (len(p) >= 3) {
+        setvar third=(p[2])
+      }
+      # this makes it more readable
+      if (second !~~ "nixbld*") {
+        if (first === "u") {
+          call users->append(second)
+        } elif (first === "g") {
+          call groups->append(second)
+        } elif (first === "m") {
+          call memberships->append("$second:$third")
+        }
+      } else {
+        setvar nixbldinfo = true
+      }
+    }
+  }
+
+  d_l "users" (users)
+  d_l "groups" (groups)
+  d_l "memberships" (memberships)
+  if (nixbldinfo) {
+    echo "! nixbld* users/groups/memberships not listed for brevity"
+  }
+}
 
 proc final(; ; ctx, cfg) {
   if (cfg.enable) {
