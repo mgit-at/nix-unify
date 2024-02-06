@@ -2,7 +2,16 @@
 #- debug:
 #    msg: "{{ exported_vars }}"
 
-- name: Deploy "{{ flake_url }}" to "{{ target_host }}"
-  ansible.builtin.shell: |
-    env ANSIBLE_JSON={{ exported_vars | to_json | quote }} {{ nix_wrapper }} nix run nixpkgs#nixos-rebuild -- --flake "{{ flake_dir }}#{{ flake_target }}" "switch" --impure --target-host "{{ target_host }}"
-  delegate_to: localhost
+- block:
+  - name: Deploy "{{ flake_url }}" to "{{ target_host }}"
+    ansible.builtin.shell: |
+      env ANSIBLE_JSON={{ exported_vars | to_json | quote }} {{ nix_wrapper }} nix run nixpkgs#nixos-rebuild -- --flake "{{ flake_dir }}#{{ flake_target }}" "switch" --impure --target-host "{{ target_host }}" --show-trace
+    delegate_to: localhost
+    register: nixos_rebuild
+  rescue:
+   - fail:
+       msg: "NixOS Deployment {{ flake_url }} to {{ target_host }} failed"
+     delegate_to: localhost
+     name: >
+       NixOS Deployment {{ flake_url }} to {{ target_host }} failed:
+       {{ nixos_rebuild.stderr }}

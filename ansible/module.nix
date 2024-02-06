@@ -6,11 +6,11 @@ with lib;
   options = {
     ansible = with types; {
       facts = mkOption {
-        type = attrsOf any;
+        type = attrsOf anything;
         default = {};
       };
       hostvars = mkOption {
-        type = attrsOf any;
+        type = attrsOf anything;
         default = {};
       };
     };

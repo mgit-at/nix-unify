@@ -16,6 +16,10 @@
         modules = [
           ./test/base.nix
           ./test/example.nix
+          ({ config, pkgs, json, ... }: {
+            environment.etc."ansible.json".text = builtins.toJSON config.ansible;
+            nix-unify.files.etc."ansible.json" = {};
+          })
         ];
       };
     };
