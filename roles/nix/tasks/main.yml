@@ -4,10 +4,20 @@
     path: /nix/store
   register: nix_store
 
+- name: Install curl and xz-utils
+  ansible.builtin.package:
+    name:
+      - curl
+      - xz-utils
+    state: latest
+  when: not nix_store.stat.exists
+
 - name: Install nix
   ansible.builtin.shell: |
     yes y | sh <(curl -L https://nixos.org/nix/install) --daemon
     for f in /nix/var/nix/profiles/default/bin/nix*; do
       ln -s "$f" "/usr/bin/$(basename "$f")"
     done
+  args:
+    executable: /bin/bash
   when: not nix_store.stat.exists
