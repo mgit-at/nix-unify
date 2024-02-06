@@ -8,7 +8,8 @@ stdenv.mkDerivation rec {
   version = "6015"; # Version of the github job...
 
   src = pkgs.fetchurl {
-    url = "http://travis-ci.oilshell.org/github-jobs/6015/cpp-tarball.wwz/_release/oils-for-unix.tar";
+    # url = "http://travis-ci.oilshell.org/github-jobs/6015/cpp-tarball.wwz/_release/oils-for-unix.tar";
+    url = "https://mkg20001.io/tmp/f7qmpbj3dmajcxki05b6gc0hxl0967p8-oils-for-unix.tar";
     hash = "sha256-TFbzcbdpqKw7J12iNtKPgJQ2g/8Ed84edcKeDfGdDuI=";
   };
 

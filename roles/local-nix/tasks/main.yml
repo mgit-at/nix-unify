@@ -21,7 +21,7 @@
 
 - name: Download nix-portable
   get_url:
-    url: "{{ json_reponse.json.assets[0].url }}"
+    url: "{{ json_reponse.json.assets[0].browser_download_url }}"
     dest: "{{ nix_portable }}"
     mode: "0755"
   delegate_to: localhost
