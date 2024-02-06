@@ -1,0 +1,7 @@
+---
+- name: test
+  hosts: test
+  roles:
+    - role: local-nix
+    - role: nix
+    - role: nixos-rebuild

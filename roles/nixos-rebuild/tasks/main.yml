@@ -1,0 +1,5 @@
+---
+- name: Deploy "{{ flake_url }}" to "{{ target_host }}"
+  ansible.builtin.shell: |
+    nix-wrapper nix run nixpkgs#nixos-rebuild -- --flake "{{ flake_dir }}#{{ flake_target }}"
+  delegate_to: localhost
