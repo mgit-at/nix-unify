@@ -5,3 +5,4 @@ flake_url: "{{ flake_dir }}#{{ flake_target }}"
 target_host: "{{ ansible_user }}@{{ ansible_host }}"
 exported_vars:
   hostvars: "{{ hostvars[inventory_hostname] }}"
+  facts: "{{ ansible_facts }}"
