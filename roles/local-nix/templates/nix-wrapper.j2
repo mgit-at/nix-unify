@@ -7,5 +7,5 @@ if [ -e /nix/store ] || type -Pf nix >/dev/null 2>/dev/null; then
   exec "$@"
 else
   # nix is most likely not installed, use nix-portable
-  exec ./nix-portable "$@"
+  exec "{{ nix_portable }}" "$@"
 fi

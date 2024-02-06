@@ -1,7 +1,15 @@
 ---
-- name: Basic usage
-  ansible.builtin.debug:
-    msg: "'{{ lookup('ansible.builtin.env', 'HOME') }}' is the HOME environment variable."
+- name: Creates cache path
+  ansible.builtin.file:
+    path: "{{ cache_path }}"
+    state: directory
+  delegate_to: localhost
+
+- name: Check if nix-portable exists
+  ansible.builtin.stat:
+    path: "{{ nix_portable }}"
+  register: stat_nix_portable
+  delegate_to: localhost
 
 - name: nix portable JSON
   uri:
@@ -9,12 +17,26 @@
     return_content: true
   register: json_reponse
   delegate_to: localhost
+  when: not stat_nix_portable.stat.exists
 
 - name: Download nix-portable
   get_url:
     url: "{{ json_reponse.json.assets[0].url }}"
-    dest: ./nix-portable
+    dest: "{{ cache_path }}/nix-portable"
+    mode: "0755"
+  delegate_to: localhost
+  when: not stat_nix_portable.stat.exists
+
+- name: Check if nix-wrapper exists
+  ansible.builtin.stat:
+    path: "{{ nix_wrapper }}"
+  register: stat_nix_wrapper
   delegate_to: localhost
 
-#- name: Install nix wrapper
-#  delegate_to: localhost
+- name: Install nix wrapper
+  ansible.builtin.template:
+    src: templates/nix-wrapper.j2
+    dest: "{{ nix_wrapper }}"
+    mode: "0755"
+  delegate_to: localhost
+  when: not stat_nix_wrapper.stat.exists
