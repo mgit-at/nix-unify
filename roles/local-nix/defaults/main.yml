@@ -1,4 +1,5 @@
 ---
+nix_portable_version: "010"
 cache_path: "{{ lookup('ansible.builtin.env', 'HOME') }}/.cache/nix-portable"
-nix_wrapper: "{{ cache_path }}/nix-wrapper"
-nix_portable: "{{ cache_path }}/nix-portable"
+nix_wrapper: "{{ cache_path }}/nix-wrapper-{{ nix_portable_version }}"
+nix_portable: "{{ cache_path }}/nix-portable-{{ nix_portable_version }}"

@@ -13,7 +13,7 @@
 
 - name: nix portable JSON
   uri:
-    url: https://api.github.com/repos/DavHau/nix-portable/releases/latest
+    url: "https://api.github.com/repos/DavHau/nix-portable/releases/tags/v{{ nix_portable_version }}"
     return_content: true
   register: json_reponse
   delegate_to: localhost
