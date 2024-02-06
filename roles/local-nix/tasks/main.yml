@@ -11,7 +11,7 @@
   register: stat_nix_portable
   delegate_to: localhost
 
-- name: nix portable JSON
+- name: Fetch GitHub release for nix-portable
   uri:
     url: "https://api.github.com/repos/DavHau/nix-portable/releases/tags/v{{ nix_portable_version }}"
     return_content: true
@@ -22,7 +22,7 @@
 - name: Download nix-portable
   get_url:
     url: "{{ json_reponse.json.assets[0].url }}"
-    dest: "{{ cache_path }}/nix-portable"
+    dest: "{{ nix_portable }}"
     mode: "0755"
   delegate_to: localhost
   when: not stat_nix_portable.stat.exists

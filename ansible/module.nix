@@ -4,14 +4,21 @@ with lib;
 
 {
   options = {
-    ansible = {
-      facts = mkOption {};
+    ansible = with types; {
+      facts = mkOption {
+        type = attrsOf any;
+        default = {};
+      };
+      hostvars = mkOption {
+        type = attrsOf any;
+        default = {};
+      };
     };
     ansible-src = mkOption {
       type = types.nullOr types.str;
-      default = null;
+      default = builtins.getEnv "ANSIBLE_JSON";
     };
   };
 
-  config.ansible = mkIf (config.ansible-src != null) importJSON config.ansible-src;
+  config.ansible = mkIf (config.ansible-src != null && config.ansible-src != "") (builtins.fromJSON config.ansible-src);
 }

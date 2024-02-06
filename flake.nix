@@ -23,6 +23,7 @@
 
     nixosModules = {
       unify = import ./unify/module.nix;
+      ansible = import ./ansible/module.nix;
     };
 
     checks = {
