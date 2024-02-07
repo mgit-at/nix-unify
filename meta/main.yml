@@ -1,0 +1,26 @@
+---
+dependencies: []
+
+galaxy_info:
+  namespace: mgit_at
+  role_name: nix_unify
+  authors:
+  - Maciej Krüger (github.com/mkg20001)
+  description: Use NixOS parts in your host operating-system, for a step-by-step migration
+  company: "mgIT GmbH"
+  license: "LICENSE"
+  min_ansible_version: 2.10
+  platforms:
+    - name: Debian
+      versions:
+        - all
+    - name: Ubuntu
+      versions:
+        - all
+    - name: NixOS
+      versions:
+        - all
+  galaxy_tags:
+    - nixos
+    - nix
+    - linux
