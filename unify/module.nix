@@ -92,7 +92,9 @@ in
           path = prev.callPackage ./package-path.nix {};
           script = prev.callPackage ./package-script.nix {};
         };
-        oil = prev.callPackage ./oils.nix {};
+        oil = if prev.lib.versionAtLeast prev.oil.version "0.20.0"
+          then prev.oil
+          else prev.callPackage ./oils.nix {};
       })
     ];
 

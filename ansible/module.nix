@@ -20,5 +20,7 @@ with lib;
     };
   };
 
-  config.ansible = mkIf (config.ansible-src != null && config.ansible-src != "") (builtins.fromJSON (builtins.readFile config.ansible-src));
+  config.ansible = if config.ansible-src != null && config.ansible-src != ""
+    then builtins.fromJSON (builtins.readFile config.ansible-src)
+    else {};
 }
