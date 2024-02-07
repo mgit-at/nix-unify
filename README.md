@@ -55,10 +55,19 @@ flake.nix:
 For each individual host add a `./nixos/HOST/default.nix`. Template:
 
 ```nix
-{ config, pkgs, lib, inputs, ... }: {
+{ config, pkgs, lib, inputs, ... }:
+
+with lib;
+
+{
   imports = [
     inputs.nix-unify.nixosModules.unify
     inputs.nix-unify.nixosModules.ansible
+  ];
+
+  environment.systemPackages = with pkgs; [
+    # add packages here
+    curl
   ];
 
   networking.hostName = "your-hostname";
