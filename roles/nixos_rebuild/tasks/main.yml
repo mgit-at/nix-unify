@@ -2,10 +2,23 @@
 #- debug:
 #    msg: "{{ exported_vars }}"
 
+- name: Create temporary file for ansible variables
+  tempfile:
+    state:  file
+    suffix: .json
+  register: ansible_json_vars
+  delegate_to: localhost
+
+- name: Write variables to file
+  ansible.builtin.template:
+    src: templates/json.j2
+    dest: "{{ ansible_json_vars.path }}"
+  delegate_to: localhost
+
 - block:
   - name: Deploy "{{ flake_url }}" to "{{ target_host }}"
     ansible.builtin.shell: |
-      env ANSIBLE_JSON={{ exported_vars | to_json | quote }} {{ nix_wrapper }} nix run nixpkgs#nixos-rebuild -- --flake "{{ flake_dir }}#{{ flake_target }}" "switch" --impure --target-host "{{ target_host }}" --show-trace
+      env ANSIBLE_JSON={{ ansible_json_vars.path | quote }} {{ nix_wrapper }} nix run nixpkgs#nixos-rebuild -- --flake "{{ flake_dir }}#{{ flake_target }}" "switch" --impure --target-host "{{ target_host }}" --show-trace
     delegate_to: localhost
     register: nixos_rebuild
   rescue:
