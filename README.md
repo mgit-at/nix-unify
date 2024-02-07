@@ -44,10 +44,10 @@ Either set `ANSIBLE_JSON` manually or use the nixos-rebuild role
 
 # Usage (ansible roles)
 
-Install the roles using ansible-galaxy
+Install the collection using ansible-galaxy
 
 ```
-ansible-galaxy install git+https://github.com/mgit-at/nix-unify.git
+ansible-galaxy collection install git+https://github.com/mgit-at/nix-unify.git
 ```
 
 - local-nix: Include before any nixos-rebuild roles
