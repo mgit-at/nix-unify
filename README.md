@@ -21,9 +21,50 @@ Add nix-unify to your flake.nix
   inputs.nix-unify.inputs.nixpkgs.follows = "nixpkgs";
 ```
 
-Add `nix-unify.nixosModules.nix-unify` to the nixos configuration that you want to convert
+Add `nix-unify.nixosModules.unify` to the nixos configuration that you want to convert
 
 Use `nixos-rebuild .#your-config --target-host user@host` to deploy the configuration
+
+## Adding a nixos flake.nix to your ansible repo
+
+flake.nix:
+
+```nix
+{
+  description = "My company ansible";
+
+  inputs.nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+  inputs.nix-unify.url = "github:mgit-at/nix-unify/master";
+  inputs.nix-unify.inputs.nixpkgs.follows = "nixpkgs";
+
+  outputs = { self, nixpkgs, nix-unify }@inputs: let
+    inherit (self) outputs;
+  in {
+    nixosConfigurations = nixpkgs.lib.mapAttrs (host: _: nixpkgs.lib.nixosSystem {
+      specialArgs = {
+        inherit inputs outputs;
+      };
+      modules = [
+        "${./nixos}/${host}"
+      ];
+    }) (builtins.readDir ./nixos);
+  };
+}
+```
+
+For each individual host add a `./nixos/HOST/default.nix`. Template:
+
+```nix
+{ config, pkgs, lib, inputs, ... }: {
+  imports = [
+    inputs.nix-unify.nixosModules.unify
+    inputs.nix-unify.nixosModules.ansible
+  ];
+
+  networking.hostName = "your-hostname";
+  nixpkgs.hostPlatform = "x86_64-linux";
+}
+```
 
 # API
 

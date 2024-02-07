@@ -7,7 +7,6 @@
   outputs = { self, nixpkgs } @ inputs: let
     inherit (self) outputs;
   in {
-
     nixosConfigurations = {
       test = nixpkgs.lib.nixosSystem {
         specialArgs = {
@@ -23,7 +22,6 @@
         ];
       };
     };
-
 
     nixosModules = {
       unify = import ./unify/module.nix;
