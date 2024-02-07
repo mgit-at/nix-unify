@@ -7,9 +7,9 @@ This repository contains multiple parts, each usable on their own:
   - deployment works using nixos-rebuild
 - ansible module: module that allows reading ansible variables from the environment variable ANSIBLE_JSON
 - ansible roles:
-  - local-nix: installs nix-portable and nix-wrapper, which uses nix-portable if no local nix install is found (meant for local usage)
+  - local_nix: installs nix-portable and nix-wrapper, which uses nix-portable if no local nix install is found (meant for local usage)
   - nix: installs nix in multi-user mode (meant for server usage)
-  - nixos-rebuild: runs nixos-rebuild and deploys the configuration on the host (meant for local usage)
+  - nixos_rebuild: runs nixos-rebuild and deploys the configuration on the host (meant for local usage)
     - can be used with both pure nixos and nix-unify system configurations
 
 # Usage (nix-unify)
@@ -50,8 +50,8 @@ Install the collection using ansible-galaxy
 ansible-galaxy collection install git+https://github.com/mgit-at/nix-unify.git
 ```
 
-- local-nix: Include before any nixos-rebuild roles
+- local_nix: Include before any nixos-rebuild roles
 - nix: Include on non-nixos hosts that will be managed by nix-unify
-- nixos-rebuild: Include for nix-unify and nixos deployments
-  - Requires local-nix or `nix_wrapper` being set to `env` (effectivly no wrapper)
+- nixos_rebuild: Include for nix-unify and nixos deployments
+  - Requires local_nix or `nix_wrapper` being set to `env` (effectivly no wrapper)
   - Note that this role depends on a fully configured flake being present in the repo that exposes the given system configurations

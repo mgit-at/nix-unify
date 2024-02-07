@@ -2,6 +2,6 @@
 - name: test
   hosts: test
   roles:
-    - role: local-nix
+    - role: local_nix
     - role: nix
-    - role: nixos-rebuild
+    - role: nixos_rebuild
