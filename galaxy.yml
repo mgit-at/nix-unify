@@ -1,0 +1,24 @@
+---
+# See https://docs.ansible.com/ansible/latest/dev_guide/collections_galaxy_meta.html
+
+namespace: mgit_at
+name: nix_unify
+version: 0.0.0
+readme: README.md
+authors:
+  - Maciej Krüger (github.com/mkg20001)
+description: Use NixOS parts in your host operating-system, for a step-by-step migration
+license_file: LICENSE
+tags:
+  # tags so people can search for collections https://galaxy.ansible.com/search
+  # tags are all lower-case, no spaces, no dashes.
+  - nixos
+  - nix
+  - linux
+repository: https://github.com/mgit-at/nix-unify
+documentation: https://github.com/mgit-at/nix-unify/blob/master/README.md
+homepage: https://github.com/mgit-at/nix-unify
+issues: https://github.com/mgit-at/nix-unify/issues
+build_ignore:
+  # https://docs.ansible.com/ansible/devel/dev_guide/developing_collections.html#ignoring-files-and-folders
+  - .gitignore
