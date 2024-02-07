@@ -45,14 +45,14 @@ flake.nix:
         inherit inputs outputs;
       };
       modules = [
-        "${./nixos}/${host}"
+        "${./nixos}/hosts/${host}"
       ];
-    }) (builtins.readDir ./nixos);
+    }) (builtins.readDir ./nixos/hosts);
   };
 }
 ```
 
-For each individual host add a `./nixos/HOST/default.nix`. Template:
+For each individual host add a `./nixos/hosts/HOST/default.nix`. Template:
 
 ```nix
 { config, pkgs, lib, inputs, ... }:
