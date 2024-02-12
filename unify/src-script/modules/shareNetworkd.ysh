@@ -1,7 +1,7 @@
-module shareNftables || return
+module sharenetworkd || return
 
 proc describe(; ; cfg) {
-  d_t "share nftables"
+  d_t "share networkd"
   d_e (cfg)
 }
 
