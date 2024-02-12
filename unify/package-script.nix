@@ -52,7 +52,7 @@ stdenv.mkDerivation {
         gnugrep
         gnused
         getent
-        (makeHostPassthrough { name = "systemd"; bins = [ "systemctl" "systemd-sysusers" ]; })
+        (makeHostPassthrough { name = "systemd"; bins = [ "systemctl" "networkctl" "systemd-sysusers" ]; })
       ]} \
       --subst-var-by srcblock "$srcblock" \
       --subst-var-by handlerblock "$handlerblock"
