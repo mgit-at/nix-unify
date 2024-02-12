@@ -20,6 +20,9 @@ in
     shareNftables = {
       enable = mkEnableOption "share nftables rules";
     };
+    shareNetworkd = {
+      enable = mkEnableOption "share networkd configuration";
+    };
     shareUsers = {
       enable = mkEnableOption "share users" // { default = true; };
       /* ignoreUsers = mkList {
@@ -66,6 +69,10 @@ in
         units = [ "nftables.service" ];
         replace = [ "nftables.service" ];
       };
+    })
+    (mkIf (cfg.shareNetworkd.enable) {
+      nix-unify.files.etc."systemd/network" = {};
+      nix-unify.files.etc."systemd/networkd.conf" = {};
     })
     (mkIf (cfg.shareSystemd.enable) {
       nix-unify.files.etc."systemd/system/service.d/zzz-nix-unify.conf" = {};
