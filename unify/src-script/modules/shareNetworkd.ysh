@@ -16,3 +16,11 @@ proc hook_files(; ; ctx, cfg) {
     }
   }
 }
+
+proc final(; ; ctx, cfg) {
+  if (cfg.enable) {
+    systemctl enable systemd-networkd.service
+    systemctl start systemd-networkd.service
+    networkctl reload
+  }
+}

@@ -1,0 +1,4 @@
+proc die(msg) {
+  echo "$msg" >&2
+  exit 2
+}
