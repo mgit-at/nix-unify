@@ -7,7 +7,7 @@ proc describe(; ; cfg) {
 
 proc hook_files(; ; ctx, cfg) {
   if (cfg.enable) {
-    for f in /etc/systemd/network /etc/systemd/networkd.conf {
+    for f in /etc/network /etc/systemd/network /etc/systemd/networkd.conf {
       if test -e "$f" {
         if ! test -L "$f" {
           mv -v "$f" "$f.nix-unify"
