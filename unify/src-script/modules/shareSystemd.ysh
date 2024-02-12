@@ -44,7 +44,11 @@ proc final(; ; ctx, cfg) {
   if (cfg.enable) {
     systemctl daemon-reload
     for unit in (ctx.systemdLink) {
-      systemctl enable "$unit"
+      if systemctl enable "$unit" {
+        true
+      } else {
+        echo "ignoring failure to enable $unit"
+      }
     }
     # todo: restart/reload as necessary (see switch-to-configuration.pl)
   }
