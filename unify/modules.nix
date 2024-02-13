@@ -75,7 +75,7 @@ in
       nix-unify.files.etc."systemd/networkd.conf" = {};
     })
     (mkIf (cfg.shareSystemd.enable) {
-      nix-unify.files.etc."systemd/system/service.d/zzz-nix-unify.conf" = {};
+      /* nix-unify.files.etc."systemd/system/service.d/zzz-nix-unify.conf" = {};
 
       # fix /nix/store in restricted services
       systemd.packages = [
@@ -87,7 +87,7 @@ in
             ReadOnlyPaths=/nix/store
           '';
         })
-      ];
+      ]; */
     })
   ];
 }
