@@ -101,13 +101,14 @@ in
     # early-boot init
     # see https://raspberrypi.stackexchange.com/a/77999
     systemd.services.nix-unify-at-boot = {
-      before = [ "basic.target" ];
-      after = [ "local-fs.target" "sysinit.target" ];
+      # before = [ "basic.target" ];
+      # after = [ "local-fs.target" "sysinit.target" ];
+      before = [ "multi-user.target" ];
       wantedBy = [ "basic.target" ];
       serviceConfig = {
         Type = "oneshot";
         RemainAfterExit = true;
-        DefaultDependencies = "no";
+        # DefaultDependencies = "no";
         ExecStart = "/nix/var/nix/profiles/system/bin/unify at_boot";
       };
     };
