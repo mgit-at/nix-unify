@@ -37,11 +37,12 @@ proc hook_files( ; ; ctx, cfg) {
   rm-link "$toplevel/bin/switch-to-configuration" "/etc/systemd/system-generators/nix-unify-generator"
 
   realise-target-links (ctx.links)
+
+  systemctl daemon-reload
 }
 
 proc final( ; ; ctx, cfg) {
-  # systemd-analyze unit-files | grep "^ids" | sed "s|ids: " > "$tmpState/ids"
-  systemctl daemon-reload
+  true
 }
 
 proc main(cmd ; cfg) {

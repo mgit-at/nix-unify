@@ -36,3 +36,16 @@ proc hook_systemd(; ; ctx, cfg) {
     systemd-link "$etc/systemd/system/$unit.d" "$tdir/$unit.d"
   }
 }
+
+proc final(; ; ctx, cfg) {
+  if (cfg.enable) {
+    var unitsShared = []
+    for unit in (cfg.unitsResolved) {
+      var frag="$(systemctl show "$unit" -p FragmentPath --value)"
+      if ("$(readlink -f "$frag")" ~~ '/nix/*') {
+        systemctl disable "$unit"
+        systemctl enable "$unit"
+      }
+    }
+  }
+}
