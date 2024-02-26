@@ -72,7 +72,7 @@ if is-main {
 
   if (len(ARGV) >= 2 and "$1" === "debug-generator") {
     dir="$(mktemp -d)"
-    systemd-generator "$dir" "$dir" "$dir" (cfg)
+    systemd-generator "$dir/normal" "$dir/early" "$dir/late" (cfg)
     find "$dir"
   } elif ("$(basename "$0")" === "nix-unify-generator") {
     if (len(ARGV) >= 3) {
