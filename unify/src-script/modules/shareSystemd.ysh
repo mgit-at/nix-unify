@@ -3,7 +3,13 @@ module shareSystemd || return
 proc describe(; ; cfg) {
   d_t "share systemd"
   d_e (cfg)
-  var unitsShared = split("$(cat "$tmpState/unitsShared")")
+  var unitsShared = []
+  for unit in (cfg.unitsResolved) {
+    var frag="$(systemctl show "$unit" -p FragmentPath --value)"
+    if ("$(readlink -f "$frag")" ~~ '/nix/*') {
+      append "$unit" (unitsShared)
+    }
+  }
   d_l "units shared" (unitsShared)
 }
 
@@ -26,7 +32,6 @@ proc hook_systemd(; ; ctx, cfg) {
     } else {
       setvar tdir=(ctx.lateDir)
     }
-    echo "$unit" >> "$tmpState/unitsShared"
     systemd-link "$etc/systemd/system/$unit" "$tdir/$unit"
     systemd-link "$etc/systemd/system/$unit.d" "$tdir/$unit.d"
   }

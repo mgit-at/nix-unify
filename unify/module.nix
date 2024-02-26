@@ -116,8 +116,9 @@ in
     nix-unify.modules.shareSystemd.units = [ "nix-unify-at-boot.service" ];
 
     system.extraSystemBuilderCmds = ''
-      cp "${cfgFile.generate "unify.json" (cfg //
-        { systemdDependenciesResolved = (visitUnit { inherit config; inherit lib; } cfg.modules.shareSystemd.units); }
+      cp "${cfgFile.generate "unify.json" (let
+        systemdDependenciesResolved = (visitUnit { inherit config; inherit lib; } cfg.modules.shareSystemd.units);
+      in (cfg // { modules = cfg.modules // { shareSystemd = cfg.modules.shareSystemd // { unitsResolved = systemdDependenciesResolved; }; }; })
       )}" $out/unify.json
 
       # add unify

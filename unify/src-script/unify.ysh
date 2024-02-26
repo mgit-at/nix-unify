@@ -54,8 +54,6 @@ proc main(cmd ; cfg) {
 
   rm-link "$toplevel" /run/current-system
 
-  setvar cfg.modules.shareSystemd.unitsResolved = cfg.systemdDependenciesResolved
-
   var ctx = { links: cfg.files }
 
   @handlerblock@
@@ -63,8 +61,6 @@ proc main(cmd ; cfg) {
 
 proc systemd-generator (normalDir, earlyDir, lateDir ; cfg) {
   var ctx = { normalDir: normalDir, earlyDir: earlyDir, lateDir: lateDir }
-
-  setvar cfg.modules.shareSystemd.unitsResolved = cfg.systemdDependenciesResolved
 
   @generatorblock@
 }
