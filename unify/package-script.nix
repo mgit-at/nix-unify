@@ -7,6 +7,7 @@
 , gnused
 , makeHostPassthrough
 , getent
+, findutils
 }:
 
 stdenv.mkDerivation {
@@ -61,6 +62,7 @@ stdenv.mkDerivation {
         gnugrep
         gnused
         getent
+        findutils
         (makeHostPassthrough { name = "systemd"; bins = [ "systemctl" "networkctl" "systemd-sysusers" ]; })
       ]} \
       --subst-var-by srcblock "$srcblock" \

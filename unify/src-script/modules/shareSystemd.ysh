@@ -17,10 +17,12 @@ proc describe(; ; cfg) {
 # ref: https://www.freedesktop.org/software/systemd/man/latest/systemd.generator.html
 
 proc systemd-link(file, out) {
-  echo "systemd link: $file $out"
   if test -e "$file" {
+    echo "systemd link: $file $out"
     mkdir -p "$(dirname "$out")"
     ln -s "$file" "$out"
+  } else {
+    echo "systemd link: $file $out (skip ENOTFOUND)"
   }
 }
 
@@ -32,20 +34,11 @@ proc hook_systemd(; ; ctx, cfg) {
     } else {
       setvar tdir=(ctx.lateDir)
     }
-    systemd-link "$etc/systemd/system/$unit" "$tdir/$unit"
     systemd-link "$etc/systemd/system/$unit.d" "$tdir/$unit.d"
-  }
-}
-
-proc final(; ; ctx, cfg) {
-  if (cfg.enable) {
-    var unitsShared = []
-    for unit in (cfg.unitsResolved) {
-      var frag="$(systemctl show "$unit" -p FragmentPath --value)"
-      if ("$(readlink -f "$frag")" ~~ '/nix/*') {
-        systemctl disable "$unit"
-        systemctl enable "$unit"
-      }
+    var files=split("$(find -L "$etc/systemd/system" -iname "$unit")")
+    for f in @files {
+      var repl="$(echo "$f" | sed "s|^$etc/systemd/system/||g")"
+      systemd-link "$f" "$tdir/$repl"
     }
   }
 }
