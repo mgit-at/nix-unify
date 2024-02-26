@@ -3,53 +3,31 @@ module shareSystemd || return
 proc describe(; ; cfg) {
   d_t "share systemd"
   d_e (cfg)
-  var unitsShared = split("$(cat "$state/unitsShared")")
+  var unitsShared = split("$(cat "$tmpState/unitsShared")")
   d_l "units shared" (unitsShared)
 }
 
-# TODO: use systemd generator and place the files as symlinks into the generator dir
+# systemd generator
 # ref: https://www.freedesktop.org/software/systemd/man/latest/systemd.generator.html
 
-proc hook_files(; ; ctx, cfg) {
-  if (cfg.enable) {
-    # TODO: fix /nix/store being missing in restricted units
-
-    setvar ctx.systemdLink = []
-    echo "" > "$tmpState/unitsShared"
-    for unit in (cfg.unitsResolved) {
-      var frag=$(systemctl show "$unit" -p FragmentPath --value)
-      if (frag === "") {
-        # doesn't exist
-        call ctx.systemdLink->append (unit)
-      } elif ("$(readlink -f "$frag")" ~~ '/nix/*') {
-        # is already installed nix unit
-        call ctx.systemdLink->append (unit)
-      } elif (arrayContains(cfg.replace, unit)) {
-        # should be replaced
-        systemctl stop "$unit" || true
-        systemctl disable "$unit"
-        call ctx.systemdLink->append (unit)
-      }
-    }
-    for unit in (ctx.systemdLink) {
-      echo "$unit" >> "$tmpState/unitsShared"
-      maybe-link "systemd/system/$unit" (ctx)
-      maybe-link "systemd/system/$unit.d" (ctx)
-    }
-    mv "$tmpState/unitsShared" "$state/unitsShared"
+proc systemd-link(file, out) {
+  echo "systemd link: $file $out"
+  if test -e "$file" {
+    mkdir -p "$(dirname "$out")"
+    ln -s "$file" "$out"
   }
 }
 
-proc final(; ; ctx, cfg) {
-  if (cfg.enable) {
-    systemctl daemon-reload
-    for unit in (ctx.systemdLink) {
-      if systemctl enable "$unit" {
-        true
-      } else {
-        echo "ignoring failure to enable $unit"
-      }
+proc hook_systemd(; ; ctx, cfg) {
+  for unit in (cfg.unitsResolved) {
+    var tdir
+    if (arrayContains(cfg.replace, unit)) {
+      setvar tdir=(ctx.earlyDir)
+    } else {
+      setvar tdir=(ctx.lateDir)
     }
-    # todo: restart/reload as necessary (see switch-to-configuration.pl)
+    echo "$unit" >> "$tmpState/unitsShared"
+    systemd-link "$etc/systemd/system/$unit" "$tdir/$unit"
+    systemd-link "$etc/systemd/system/$unit.d" "$tdir/$unit.d"
   }
 }

@@ -28,12 +28,20 @@ proc rm-link(src, target) {
   ln -sf "$src" "$target"
 }
 
+proc hook_systemd( ; ; ctx, cfg) {
+  true
+}
+
 proc hook_files( ; ; ctx, cfg) {
+  # setvar ctx.links.etc["systemd/system-generators/nix-unify-generator"] = { enable: true, target: "$self" }
+  rm-link "$toplevel/bin/switch-to-configuration" "/etc/systemd/system-generators/nix-unify-generator"
+
   realise-target-links (ctx.links)
 }
 
 proc final( ; ; ctx, cfg) {
-  true
+  # systemd-analyze unit-files | grep "^ids" | sed "s|ids: " > "$tmpState/ids"
+  systemctl daemon-reload
 }
 
 proc main(cmd ; cfg) {
@@ -53,9 +61,30 @@ proc main(cmd ; cfg) {
   @handlerblock@
 }
 
+proc systemd-generator (normalDir, earlyDir, lateDir ; cfg) {
+  var ctx = { normalDir: normalDir, earlyDir: earlyDir, lateDir: lateDir }
+
+  setvar cfg.modules.shareSystemd.unitsResolved = cfg.systemdDependenciesResolved
+
+  @generatorblock@
+}
+
 if is-main {
   cat "$toplevel/unify.json" | json read (&cfg)
   mkdir -p "$state"
   mkdir -p "$tmpState"
-  main @ARGV (cfg)
+
+  if (len(ARGV) >= 2 and "$1" === "debug-generator") {
+    dir="$(mktemp -d)"
+    systemd-generator "$dir" "$dir" "$dir" (cfg)
+    find "$dir"
+  } elif ("$(basename "$0")" === "nix-unify-generator") {
+    if (len(ARGV) >= 3) {
+      systemd-generator @ARGV (cfg)
+    } else {
+      systemd-generator "$1" "$1" "$1" (cfg)
+    }
+  } else {
+    main @ARGV (cfg)
+  }
 }

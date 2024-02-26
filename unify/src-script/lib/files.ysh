@@ -22,15 +22,20 @@ proc update-link(source, target) {
 # returns all elements of arraya that are not in arrayb
 # (a=old, b=new)
 func arrayFindNonShared(arraya, arrayb, nonshared) {
+  var contains
   for item in (arraya) {
-    var contains = false
+    setvar contains = (0 === 1)
     for itemcomp in (arrayb) {
       if (itemcomp === item) {
         setvar contains = true
       }
     }
-    if (not contains) {
-      append $item (nonshared)
+    var v = "$(echo "$contains")"
+    # if (not contains) {
+    if test "$v" = "false" {
+      # append "$item" (nonshared)
+      var v2 = "$(echo "$item")"
+      append "$v2" (nonshared)
     }
   }
 }
@@ -60,7 +65,7 @@ proc prune-old {
   var oldDB = split("$(cat "$fileDB")")
 
   var remove = []
-  call arrayFindNonShared(oldDB, newDB, &remove)
+  call arrayFindNonShared(oldDB, newDB, remove)
   for link in (remove) {
     echo "rm old link: $link"
     rm -f "$link"

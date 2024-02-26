@@ -26,24 +26,33 @@ stdenv.mkDerivation {
           sed \
             -e "s|^proc $h|proc ''${mod}_$h|g" \
             -i "$f"
-          handlerblock="''${handlerblock}
+          newblock="''${newblock}
 ''${mod}_$h (ctx=ctx, cfg=cfg.modules.$mod)"
         fi
       done
-      handlerblock="''${handlerblock}
+      newblock="''${newblock}
 ''$h (ctx=ctx, cfg=cfg)"
     }
 
     patchShebangs .
-    handlerblock=""
+
+    newblock=""
     for h in hook_files final; do
       doHook
     done
+    handlerblock="$newblock"
+
     srcblock=""
     for f in lib/*.ysh modules/*.ysh; do
       srcblock="''${srcblock}
       source $out/$f"
     done
+
+    newblock=""
+    for h in hook_systemd; do
+      doHook
+    done
+    generatorblock="$newblock"
 
     substituteInPlace unify.ysh \
       --subst-var-by self $out \
@@ -55,12 +64,13 @@ stdenv.mkDerivation {
         (makeHostPassthrough { name = "systemd"; bins = [ "systemctl" "networkctl" "systemd-sysusers" ]; })
       ]} \
       --subst-var-by srcblock "$srcblock" \
-      --subst-var-by handlerblock "$handlerblock"
+      --subst-var-by handlerblock "$handlerblock" \
+      --subst-var-by generatorblock "$generatorblock"
 
-    handlerblock="$srcblock"
+    newblock="$srcblock"
     h="describe"
     doHook
-    echo "$handlerblock" > unify-overview.ysh
+    echo "$newblock" > unify-overview.ysh
     chmod +x unify-overview.ysh
   '';
 
