@@ -26,6 +26,7 @@ proc systemd-link(file, out) {
   }
 }
 
+# TODO: pregen filelist and then just use static file list?
 proc hook_systemd(; ; ctx, cfg) {
   for unit in (cfg.unitsResolved) {
     var tdir

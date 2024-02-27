@@ -42,8 +42,8 @@ in
       nix-unify = {
         modules = {
           shareSystemd = {
-            units = [ "nix-daemon.service" ];
-            replace = [ "nix-daemon.service" ];
+            units = [ "nix-daemon.service" "nix-daemon.socket" ];
+            replace = [ "nix-daemon.service" "nix-daemon.socket" ];
           };
         };
         files.etc."nix" = {};
