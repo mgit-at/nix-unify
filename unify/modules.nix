@@ -25,18 +25,6 @@ in
     };
     shareUsers = {
       enable = mkEnableOption "share users" // { default = true; };
-      /* ignoreUsers = mkList {
-        description = "Ignore certain users from being shared";
-      };
-      ignoreGroups = mkList {
-        description = "Ignore certain groups from being shared";
-      };
-      forceUsers = mkList {
-        description = "Claim certain users regardless of whether the host manages them";
-      };
-      forceGroups = mkList {
-        description = "Claim certain groups regardless of whether the host manages them";
-      }; */
     };
     shareSystemd = {
       enable = mkEnableOption "systemd units" // { default = true; };
@@ -57,10 +45,6 @@ in
             units = [ "nix-daemon.service" ];
             replace = [ "nix-daemon.service" ];
           };
-          /* shareUsers = {
-            forceUsers = map (id: "nixbld${toString id}") (range 1 32);
-            forceGroups = [ "nixbld" ];
-          }; */
         };
         files.etc."nix" = {};
       };
