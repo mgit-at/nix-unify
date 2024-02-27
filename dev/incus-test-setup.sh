@@ -4,6 +4,12 @@ set -euxo pipefail
 
 SELF=$(dirname "$(readlink -f "$0")")
 
+# What is this?
+# Since we will be testing within a nixos derivation
+# we won't have access to things ike the internet
+# (which is good, sinve the code shouldn't require it outside of (fod) build time)
+# This means we need to create the image on a regular machine
+# and then import it to the CI VM's incus daemon
 if [ -v EXPORT_IMAGE ]; then
   rm -rf "$SELF/images"
   mkdir -p "$SELF/images"
