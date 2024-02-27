@@ -2,6 +2,8 @@
 
 set -euxo pipefail
 
+SELF=$(dirname "$(readlink -f "$0")")
+
 for img in debian/12 ubuntu/22.04; do
   os=$(dirname "$img")
 
@@ -16,7 +18,7 @@ for img in debian/12 ubuntu/22.04; do
     apt install curl xz-utils openssh-server -y
     yes y | sh <(curl -L https://nixos.org/nix/install) --daemon
     mkdir -p /root/.ssh
-    echo \"$(cat ~/.ssh/*pub)\" > /root/.ssh/authorized_keys
+    echo \"$(cat $SELF/id_ed25519_dev.pub)\" > /root/.ssh/authorized_keys
     chmod 600 -R /root/.ssh
     mkdir -p /var/nix-unify
     touch /var/nix-unify/DEBUG
