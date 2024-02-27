@@ -18,11 +18,11 @@ proc describe(; ; cfg) {
 
 proc systemd-link(file, out) {
   if test -e "$file" {
-    echo "systemd link: $file $out"
+    echo "link: $file $out"
     mkdir -p "$(dirname "$out")"
     ln -s "$file" "$out"
   } else {
-    echo "systemd link: $file $out (skip ENOTFOUND)"
+    echo "skip: $file $out"
   }
 }
 
