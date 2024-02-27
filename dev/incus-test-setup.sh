@@ -4,6 +4,11 @@ set -euxo pipefail
 
 SELF=$(dirname "$(readlink -f "$0")")
 
+if [ -v EXPORT_IMAGE ]; then
+  rm -rf "$SELF/images"
+  mkdir -p "$SELF/images"
+fi
+
 for img in debian/12 ubuntu/22.04; do
   os=$(dirname "$img")
 
@@ -27,4 +32,9 @@ for img in debian/12 ubuntu/22.04; do
   echo 'for f in /nix/var/nix/profiles/default/bin/nix*; do
     ln -s "$f" "/usr/bin/$(basename "$f")"
   done' | incus exec "unify-$os" bash -
+
+  if [ -v EXPORT_IMAGE ]; then
+    incus stop "unify-$os"
+    incus export --instance-only "unify-$os" "$SELF/images/$os.tar.gz"
+  fi
 done
