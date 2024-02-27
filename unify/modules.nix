@@ -60,6 +60,8 @@ in
       nix-unify.files.etc."systemd/networkd.conf" = {};
     })
     (mkIf (cfg.shareSystemd.enable) {
+      nix-unify.modules.shareSystemd.units = [ "nscd.service" ];
+      nix-unify.files.etc."nscd.conf" = {};
       /* nix-unify.files.etc."systemd/system/service.d/zzz-nix-unify.conf" = {};
 
       # fix /nix/store in restricted services
