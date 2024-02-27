@@ -62,6 +62,7 @@ in
             forceGroups = [ "nixbld" ];
           }; */
         };
+        files.etc."nix" = {};
       };
     })
     (mkIf (cfg.shareNftables.enable) {

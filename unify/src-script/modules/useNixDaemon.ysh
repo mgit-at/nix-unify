@@ -1,0 +1,14 @@
+module nixDaemon || return
+
+proc describe(; ; cfg) {
+  d_t "use nix daemon"
+  d_e (cfg)
+}
+
+proc hook_files(; ; ctx, cfg) {
+  if (cfg.enable) {
+    if ! test -L "/etc/nix" {
+      mv -v /etc/nix /etc/nix.nix-unify
+    }
+  }
+}
