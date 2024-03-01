@@ -5,11 +5,11 @@ set -euo pipefail
 IP="$1"
 
 SELF=$(dirname "$(readlink -f "$0")")
-KEY="$SELF/../dev/id_ed25519_dev"
+KEY="$SELF/id_ed25519_dev"
 KNOWN_HOSTS=$(mktemp)
 DEST="root@$IP"
 
-export NIX_SSHOPTS="-o UserKnownHostsFile=$KNOWN_HOSTS -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i $KEY"
+export NIX_SSHOPTS="-o VisualHostKey=no -o UserKnownHostsFile=$KNOWN_HOSTS -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i $KEY"
 
 m() {
   echo "$*" >&2
@@ -47,13 +47,18 @@ deploy() {
   s "deploying $SRC"
 
   F="/tmp/nix-unify-$SRC"
-  nix-build --arg conf "$SELF/tests/$SRC.nix" buildos.nix -o "$F"
+  nix-build --arg conf "$SELF/tests/$SRC.nix" "$SELF/buildos.nix" -o "$F"
   STORE=$(readlink -f "$F")
 
   nix-copy-closure --to "$DEST" "$STORE"
   ssh nix-env -p /nix/var/nix/profiles/system --set "$STORE"
   ssh "$STORE/bin/switch-to-configuration" switch
 }
+
+s "prepare"
+
+t "make sure no nixdeploy exists"
+ssh test ! -e /etc/systemd/system-generators/nix-unify-generator
 
 deploy initial
 

@@ -3,6 +3,7 @@
 set -euxo pipefail
 
 SELF=$(dirname "$(readlink -f "$0")")
+. "$SELF/oslist.sh"
 
 # What is this?
 # Since we will be testing within a nixos derivation
@@ -11,8 +12,8 @@ SELF=$(dirname "$(readlink -f "$0")")
 # This means we need to create the image on a regular machine
 # and then import it to the CI VM's incus daemon
 if [ -v EXPORT_IMAGE ]; then
-  rm -rf "$SELF/images"
-  mkdir -p "$SELF/images"
+  rm -rf "$IMAGES"
+  mkdir -p "$IMAGES"
 fi
 
 for img in debian/12 ubuntu/22.04; do
@@ -40,7 +41,8 @@ for img in debian/12 ubuntu/22.04; do
   done' | incus exec "unify-$os" bash -
 
   if [ -v EXPORT_IMAGE ]; then
-    incus stop "unify-$os"
-    incus export --instance-only "unify-$os" "$SELF/images/$os.tar.gz"
+    incus image delete "unify-test-$os" || true
+    incus publish "unify-$os" --force --alias "unify-test-$os"
+    incus image export "unify-test-$os" "$IMAGES/$os"
   fi
 done
