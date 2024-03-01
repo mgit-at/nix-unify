@@ -50,7 +50,7 @@ deploy() {
   nix-build --arg conf "$SELF/tests/$SRC.nix" "$SELF/buildos.nix" -o "$F"
   STORE=$(readlink -f "$F")
 
-  nix-copy-closure --to "$DEST" "$STORE"
+  nix-copy-closure --to "$DEST" "$STORE" 2>&1 | grep -v "copying path"
   ssh nix-env -p /nix/var/nix/profiles/system --set "$STORE"
   ssh "$STORE/bin/switch-to-configuration" switch
 }
