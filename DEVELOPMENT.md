@@ -25,3 +25,10 @@ Then you can init incus: `sudo incus admin init --minimal`
 ## Automated tests
 
 If you want to run the full testsuite first run `EXPORT_IMAGE=1 bash test/incus-test-setup.sh` to create images from instances then `bash test/test-all.sh` to run the testsuite
+
+## Notes
+
+Write idempotent code. Tracking state is good, idempotence is better.
+
+Also consider implications about tracking of state changes
+and subsequent removal of state changes once they should cease to exist.
