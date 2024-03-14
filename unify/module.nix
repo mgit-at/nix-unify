@@ -82,7 +82,7 @@ in
     # managment, etc/profile.d
     environment.systemPackages = with pkgs; [
       nix-unify.path
-      oil
+      oils-for-unix
     ];
 
     nixpkgs.overlays = [
@@ -92,8 +92,8 @@ in
           path = prev.callPackage ./package-path.nix {};
           script = prev.callPackage ./package-script.nix {};
         };
-        oil = if prev.lib.versionAtLeast prev.oil.version "0.20.0"
-          then prev.oil
+        "oils-for-unix" = if prev ? "oils-for-unix"
+          then prev."oils-for-unix"
           else prev.callPackage ./oils.nix {};
       })
     ];

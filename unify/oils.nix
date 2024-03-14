@@ -6,12 +6,12 @@ let
   };
 in
 stdenv.mkDerivation rec {
-  pname = "oil";
-  version = "0.20.0";
+  pname = "oils-for-unix";
+  version = "0.21.0";
 
   src = fetchurl {
     url = "https://www.oilshell.org/download/oils-for-unix-${version}.tar.gz";
-    hash = "sha256-d4BIRj8bPyd7awZyJPlZYBwr+o82IKGh4y4/urOYOxc=";
+    hash = "sha256-g8uEK68J9BsCHEvJGDgsKUmsuR1MvChEC9A00Y2sZU4=";
   };
 
   postPatch = ''
@@ -23,11 +23,19 @@ stdenv.mkDerivation rec {
   '';
 
   buildPhase = ''
+    runHook preBuild
+
     _build/oils.sh
+
+    runHook postBuild
   '';
 
   installPhase = ''
+    runHook preInstall
+
     ./install
+
+    runHook postInstall
   '';
 
   strictDeps = true;
@@ -47,16 +55,13 @@ stdenv.mkDerivation rec {
   dontStrip = true;
 
   meta = {
-    description = "A new unix shell";
+    description = "A Unix shell with JSON-compatible structured data. It's our upgrade path from bash to a better language and runtime.";
     homepage = "https://www.oilshell.org/";
 
-    license = with lib.licenses; [
-      psfl # Includes a portion of the python interpreter and standard library
-      asl20 # Licence for Oil itself
-    ];
+    license = lib.licenses.asl20;
 
     platforms = lib.platforms.all;
-    maintainers = with lib.maintainers; [ lheckemann alva mkg20001 ];
+    maintainers = with lib.maintainers; [ lheckemann alva mkg20001 melkor333 ];
     changelog = "https://www.oilshell.org/release/${version}/changelog.html";
   };
 
