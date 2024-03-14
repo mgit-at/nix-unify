@@ -3,6 +3,10 @@
 with lib;
 
 {
+  imports = [
+    ./defaults.nix
+  ];
+
   options = {
     ansible = with types; {
       facts = mkOption {

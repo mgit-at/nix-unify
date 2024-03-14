@@ -1,4 +1,6 @@
-{ inputs, ... }:
+{ inputs, lib, ... }:
+
+with lib;
 
 {
   imports = [

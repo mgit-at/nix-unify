@@ -1,7 +1,9 @@
 ---
 - name: test
-  hosts: test
+  hosts: all
   roles:
     - role: local_nix
     - role: nix
     - role: nixos_rebuild
+      flake_target: test
+      target_host: "root@{{ inventory_hostname }}"
