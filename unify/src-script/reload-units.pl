@@ -35,11 +35,7 @@ use Fcntl ':flock';
 # Location of activation scripts
 my $out = "@out@";
 # System closure path to switch to
-my $toplevel = "@toplevel@";
-# Path to the directory containing systemd tools of the old system
-my $cur_systemd = abs_path("/run/current-system/sw/bin");
-# Path to the systemd store path of the new system
-my $new_systemd = "@systemd@";
+my $toplevel = "$ENV{toplevel}";
 
 # To be robust against interruption, record what units need to be started etc.
 # We read these files again every time this script starts to make sure we continue
@@ -68,11 +64,6 @@ my $dry_reload_by_activation_file = "/run/nixos/dry-activation-reload-list";
 my $action = shift(@ARGV);
 $ENV{NIXOS_ACTION} = $action;
 
-# Expose the locale archive as an environment variable for systemctl and the activation script
-if ("@localeArchive@" ne "") {
-    $ENV{LOCALE_ARCHIVE} = "@localeArchive@";
-}
-
 if (!defined($action) || ($action ne "switch" && $action ne "boot" && $action ne "test" && $action ne "dry-activate")) {
     print STDERR <<"EOF";
 Usage: $0 [switch|boot|test|dry-activate]
@@ -85,45 +76,14 @@ EOF
     exit(1);
 }
 
-# This is a NixOS installation if it has /etc/NIXOS or a proper
-# /etc/os-release.
-if (!-f "/etc/NIXOS" && (read_file("/etc/os-release", err_mode => "quiet") // "") !~ /^ID="?@distroId@"?/msx) {
-    die("This is not a NixOS installation!\n");
-}
-
 make_path("/run/nixos", { mode => oct(755) });
 open(my $stc_lock, '>>', '/run/nixos/switch-to-configuration.lock') or die "Could not open lock - $!";
 flock($stc_lock, LOCK_EX) or die "Could not acquire lock - $!";
 openlog("nixos", "", LOG_USER);
 
-# Install or update the bootloader.
-if ($action eq "switch" || $action eq "boot") {
-    chomp(my $install_boot_loader = <<'EOFBOOTLOADER');
-@installBootLoader@
-EOFBOOTLOADER
-    system("$install_boot_loader $toplevel") == 0 or exit 1;
-}
-
 # Just in case the new configuration hangs the system, do a sync now.
 if (($ENV{"NIXOS_NO_SYNC"} // "") ne "1") {
     system("@coreutils@/bin/sync", "-f", "/nix/store");
-}
-
-if ($action eq "boot") {
-    exit(0);
-}
-
-# Check if we can activate the new configuration.
-my $cur_init_interface_version = read_file("/run/current-system/init-interface-version", err_mode => "quiet") // "";
-my $new_init_interface_version = read_file("$toplevel/init-interface-version");
-
-if ($new_init_interface_version ne $cur_init_interface_version) {
-    print STDERR <<'EOF';
-Warning: the new NixOS configuration has an ‘init’ that is
-incompatible with the current configuration.  The new configuration
-won't take effect until you reboot the system.
-EOF
-    exit(100);
 }
 
 # Ignore SIGHUP so that we're not killed if we're running on (say)
@@ -136,7 +96,7 @@ $SIG{PIPE} = "IGNORE";
 sub busctl_call_systemd1_mgr {
     my (@args) = @_;
     my $cmd = [
-        "$cur_systemd/busctl", "--json=short", "call", "org.freedesktop.systemd1",
+        "busctl", "--json=short", "call", "org.freedesktop.systemd1",
         "/org/freedesktop/systemd1", "org.freedesktop.systemd1.Manager",
         @args
     ];
@@ -547,6 +507,7 @@ sub handle_modified_unit { ## no critic(Subroutines::ProhibitManyArgs, Subroutin
     return;
 }
 
+
 # Figure out what units need to be stopped, started, restarted or reloaded.
 my (%units_to_stop, %units_to_skip, %units_to_start, %units_to_restart, %units_to_reload);
 
@@ -563,7 +524,7 @@ my %units_to_filter; # units not shown
 
 my $active_cur = get_active_units();
 while (my ($unit, $state) = each(%{$active_cur})) {
-    my $cur_unit_file = "/etc/systemd/system/$unit";
+    my $cur_unit_file = "/etc/static/systemd/system/$unit";
     my $new_unit_file = "$toplevel/etc/systemd/system/$unit";
 
     my $base_unit = $unit;
@@ -573,7 +534,7 @@ while (my ($unit, $state) = each(%{$active_cur})) {
     # Detect template instances.
     if (!-e $cur_unit_file && !-e $new_unit_file && $unit =~ /^(.*)@[^\.]*\.(.*)$/msx) {
       $base_unit = "$1\@.$2";
-      $cur_base_unit_file = "/etc/systemd/system/$base_unit";
+      $cur_base_unit_file = "/etc/static/systemd/system/$base_unit";
       $new_base_unit_file = "$toplevel/etc/systemd/system/$base_unit";
     }
 
@@ -643,7 +604,7 @@ while (my ($unit, $state) = each(%{$active_cur})) {
 sub path_to_unit_name {
     my ($path) = @_;
     # Use current version of systemctl binary before daemon is reexeced.
-    open(my $cmd, "-|", "$cur_systemd/systemd-escape", "--suffix=mount", "-p", $path)
+    open(my $cmd, "-|", "systemd-escape", "--suffix=mount", "-p", $path)
         or die "Unable to escape $path!\n";
     my $escaped = do { local $/ = undef; <$cmd> };
     chomp($escaped);
@@ -651,72 +612,16 @@ sub path_to_unit_name {
     return $escaped;
 }
 
-# Compare the previous and new fstab to figure out which filesystems
-# need a remount or need to be unmounted.  New filesystems are mounted
-# automatically by starting local-fs.target.  FIXME: might be nicer if
-# we generated units for all mounts; then we could unify this with the
-# unit checking code above.
-my ($cur_fss, $cur_swaps) = parse_fstab("/etc/fstab");
-my ($new_fss, $new_swaps) = parse_fstab("$toplevel/etc/fstab");
-foreach my $mount_point (keys(%{$cur_fss})) {
-    my $cur = $cur_fss->{$mount_point};
-    my $new = $new_fss->{$mount_point};
-    my $unit = path_to_unit_name($mount_point);
-    if (!defined($new)) {
-        # Filesystem entry disappeared, so unmount it.
-        $units_to_stop{$unit} = 1;
-    } elsif ($cur->{fsType} ne $new->{fsType} || $cur->{device} ne $new->{device}) {
-        if ($mount_point eq '/' or $mount_point eq '/nix') {
-            if ($cur->{options} ne $new->{options}) {
-                # Mount options changed, so remount it.
-                $units_to_reload{$unit} = 1;
-                record_unit($reload_list_file, $unit);
-            } else {
-                # Don't unmount / or /nix if the device changed
-                $units_to_skip{$unit} = 1;
-            }
-        } else {
-            # Filesystem type or device changed, so unmount and mount it.
-            $units_to_restart{$unit} = 1;
-            record_unit($restart_list_file, $unit);
-        }
-    } elsif ($cur->{options} ne $new->{options}) {
-        # Mount options changes, so remount it.
-        $units_to_reload{$unit} = 1;
-        record_unit($reload_list_file, $unit);
-    }
-}
-
-# Also handles swap devices.
-foreach my $device (keys(%{$cur_swaps})) {
-    my $cur = $cur_swaps->{$device};
-    my $new = $new_swaps->{$device};
-    if (!defined($new)) {
-        # Swap entry disappeared, so turn it off.  Can't use
-        # "systemctl stop" here because systemd has lots of alias
-        # units that prevent a stop from actually calling
-        # "swapoff".
-        if ($action eq "dry-activate") {
-            print STDERR "would stop swap device: $device\n";
-        } else {
-            print STDERR "stopping swap device: $device\n";
-            system("@utillinux@/sbin/swapoff", $device);
-        }
-    }
-    # FIXME: update swap options (i.e. its priority).
-}
-
-
 # Should we have systemd re-exec itself?
-my $cur_pid1_path = abs_path("/proc/1/exe") // "/unknown";
-my $cur_systemd_system_config = abs_path("/etc/systemd/system.conf") // "/unknown";
-my $new_pid1_path = abs_path("$new_systemd/lib/systemd/systemd") or die;
-my $new_systemd_system_config = abs_path("$toplevel/etc/systemd/system.conf") // "/unknown";
-
-my $restart_systemd = $cur_pid1_path ne $new_pid1_path;
-if ($cur_systemd_system_config ne $new_systemd_system_config) {
-    $restart_systemd = 1;
-}
+# my $cur_pid1_path = abs_path("/proc/1/exe") // "/unknown";
+# my $cur_systemd_system_config = abs_path("/etc/static/systemd/system.conf") // "/unknown";
+# my $new_pid1_path = abs_path("$new_systemd/lib/systemd/systemd") or die;
+# my $new_systemd_system_config = abs_path("$toplevel/etc/systemd/system.conf") // "/unknown";
+#
+# my $restart_systemd = $cur_pid1_path ne $new_pid1_path;
+# if ($cur_systemd_system_config ne $new_systemd_system_config) {
+#     $restart_systemd = 1;
+# }
 
 # Takes an array of unit names and returns an array with the same elements,
 # except all units that are also in the global variable `unitsToFilter`.
@@ -782,9 +687,9 @@ if ($action eq "dry-activate") {
     }
     unlink($dry_reload_by_activation_file);
 
-    if ($restart_systemd) {
-        print STDERR "would restart systemd\n";
-    }
+    #if ($restart_systemd) {
+    #    print STDERR "would restart systemd\n";
+    #}
     if (scalar(keys(%units_to_reload)) > 0) {
         print STDERR "would reload the following units: ", join(", ", sort(keys(%units_to_reload))), "\n";
     }
@@ -806,7 +711,7 @@ if (scalar(keys(%units_to_stop)) > 0) {
         print STDERR "stopping the following units: ", join(", ", @units_to_stop_filtered), "\n";
     }
     # Use current version of systemctl binary before daemon is reexeced.
-    system("$cur_systemd/systemctl", "stop", "--", sort(keys(%units_to_stop)));
+    system("systemctl", "stop", "--", sort(keys(%units_to_stop)));
 }
 
 if (scalar(keys(%units_to_skip)) > 0) {
@@ -817,7 +722,7 @@ if (scalar(keys(%units_to_skip)) > 0) {
 # and so on).
 my $res = 0;
 print STDERR "activating the configuration...\n";
-system("$out/activate", "$out") == 0 or $res = 2;
+#system("$out/activate", "$out") == 0 or $res = 2;
 
 # Handle the activation script requesting the restart or reload of a unit.
 foreach (split(/\n/msx, read_file($restart_by_activation_file, err_mode => "quiet") // "")) {
@@ -861,33 +766,33 @@ unlink($reload_by_activation_file);
 # Restart systemd if necessary. Note that this is done using the
 # current version of systemd, just in case the new one has trouble
 # communicating with the running pid 1.
-if ($restart_systemd) {
-    print STDERR "restarting systemd...\n";
-    system("$cur_systemd/systemctl", "daemon-reexec") == 0 or $res = 2;
-}
+#if ($restart_systemd) {
+#    print STDERR "restarting systemd...\n";
+#    system("systemctl", "daemon-reexec") == 0 or $res = 2;
+#}
 
 # Forget about previously failed services.
-system("$new_systemd/bin/systemctl", "reset-failed");
+system("systemctl", "reset-failed");
 
 # Make systemd reload its units.
-system("$new_systemd/bin/systemctl", "daemon-reload") == 0 or $res = 3;
+system("systemctl", "daemon-reload") == 0 or $res = 3;
 
 # Reload user units
-open(my $list_active_users, "-|", "$new_systemd/bin/loginctl", "list-users", "--no-legend") || die("Unable to call loginctl");
-while (my $f = <$list_active_users>) {
-    if ($f !~ /^\s*(?<uid>\d+)\s+(?<user>\S+)/msx) {
-        next;
-    }
-    my ($uid, $name) = ($+{uid}, $+{user});
-    print STDERR "reloading user units for $name...\n";
+# open(my $list_active_users, "-|", "loginctl", "list-users", "--no-legend") || die("Unable to call loginctl");
+# while (my $f = <$list_active_users>) {
+#     if ($f !~ /^\s*(?<uid>\d+)\s+(?<user>\S+)/msx) {
+#         next;
+#     }
+#     my ($uid, $name) = ($+{uid}, $+{user});
+#     print STDERR "reloading user units for $name...\n";
+#
+#     system("@su@", "-s", "@shell@", "-l", $name, "-c",
+#            "export XDG_RUNTIME_DIR=/run/user/$uid; " .
+#            "systemctl --user daemon-reexec; " .
+#            "systemctl --user start nixos-activation.service");
+# }
 
-    system("@su@", "-s", "@shell@", "-l", $name, "-c",
-           "export XDG_RUNTIME_DIR=/run/user/$uid; " .
-           "$cur_systemd/systemctl --user daemon-reexec; " .
-           "$new_systemd/bin/systemctl --user start nixos-activation.service");
-}
-
-close($list_active_users) || die("Unable to close the file handle to loginctl");
+# close($list_active_users) || die("Unable to close the file handle to loginctl");
 
 # Restart sysinit-reactivation.target.
 # This target only exists to restart services ordered before sysinit.target. We
@@ -896,8 +801,8 @@ close($list_active_users) || die("Unable to close the file handle to loginctl");
 # default dependency on sysinit.target. sysinit-reactivation.target ensures
 # that services ordered BEFORE sysinit.target get re-started in the correct
 # order. Ordering between these services is respected.
-print STDERR "restarting sysinit-reactivation.target\n";
-system("$new_systemd/bin/systemctl", "restart", "sysinit-reactivation.target") == 0 or $res = 4;
+#print STDERR "restarting sysinit-reactivation.target\n";
+#system("systemctl", "restart", "sysinit-reactivation.target") == 0 or $res = 4;
 
 # Before reloading we need to ensure that the units are still active. They may have been
 # deactivated because one of their requirements got stopped. If they are inactive
@@ -921,7 +826,7 @@ if (scalar(keys(%units_to_reload)) > 0) {
 # units.
 if (scalar(keys(%units_to_reload)) > 0) {
     print STDERR "reloading the following units: ", join(", ", sort(keys(%units_to_reload))), "\n";
-    system("$new_systemd/bin/systemctl", "reload", "--", sort(keys(%units_to_reload))) == 0 or $res = 4;
+    system("systemctl", "reload", "--", sort(keys(%units_to_reload))) == 0 or $res = 4;
     unlink($reload_list_file);
 }
 
@@ -929,7 +834,7 @@ if (scalar(keys(%units_to_reload)) > 0) {
 # than stopped and started).
 if (scalar(keys(%units_to_restart)) > 0) {
     print STDERR "restarting the following units: ", join(", ", sort(keys(%units_to_restart))), "\n";
-    system("$new_systemd/bin/systemctl", "restart", "--", sort(keys(%units_to_restart))) == 0 or $res = 4;
+    system("systemctl", "restart", "--", sort(keys(%units_to_restart))) == 0 or $res = 4;
     unlink($restart_list_file);
 }
 
@@ -943,7 +848,7 @@ my @units_to_start_filtered = filter_units(\%units_to_start);
 if (scalar(@units_to_start_filtered)) {
     print STDERR "starting the following units: ", join(", ", @units_to_start_filtered), "\n"
 }
-system("$new_systemd/bin/systemctl", "start", "--", sort(keys(%units_to_start))) == 0 or $res = 4;
+system("systemctl", "start", "--", sort(keys(%units_to_start))) == 0 or $res = 4;
 unlink($start_list_file);
 
 
@@ -958,7 +863,7 @@ while (my ($unit, $state) = each(%{$active_new})) {
 
     if ($state->{substate} eq "auto-restart") {
         # A unit in auto-restart substate is a failure *if* it previously failed to start
-        open(my $main_status_fd, "-|", "$new_systemd/bin/systemctl", "show", "--value", "--property=ExecMainStatus", $unit) || die("Unable to call 'systemctl show'");
+        open(my $main_status_fd, "-|", "systemctl", "show", "--value", "--property=ExecMainStatus", $unit) || die("Unable to call 'systemctl show'");
         my $main_status = do { local $/ = undef; <$main_status_fd> };
         close($main_status_fd) || die("Unable to close 'systemctl show' fd");
         chomp($main_status);
@@ -984,7 +889,7 @@ if (scalar(@new) > 0) {
 if (scalar(@failed) > 0) {
     my @failed_sorted = sort(@failed);
     print STDERR "warning: the following units failed: ", join(", ", @failed_sorted), "\n\n";
-    system("$new_systemd/bin/systemctl status --no-pager --full '" . join("' '", @failed_sorted) . "' >&2");
+    system("systemctl status --no-pager --full '" . join("' '", @failed_sorted) . "' >&2");
     $res = 4;
 }
 

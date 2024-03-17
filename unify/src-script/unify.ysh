@@ -38,7 +38,11 @@ proc hook_files( ; ; ctx, cfg) {
 
   realise-target-links (ctx.links)
 
-  systemctl daemon-reload
+  if (cfg.modules.shareSystemd.enable) {
+    toplevel="$toplevel" "$self/reload-units.pl" switch
+  } else {
+    systemctl daemon-reload
+  }
 }
 
 proc final( ; ; ctx, cfg) {

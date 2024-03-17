@@ -8,8 +8,13 @@
 , makeHostPassthrough
 , getent
 , findutils
+, util-linux
+, perl
 }:
 
+let
+  perlWrapped = perl.withPackages (p: with p; [ ConfigIniFiles FileSlurp ]);
+in
 stdenv.mkDerivation {
   name = "nix-unify-script";
   src = ./src-script;
@@ -63,11 +68,18 @@ stdenv.mkDerivation {
         gnused
         getent
         findutils
-        (makeHostPassthrough { name = "systemd"; bins = [ "systemctl" "networkctl" "systemd-sysusers" ]; })
+        (makeHostPassthrough { name = "systemd"; bins = [ "systemctl" "networkctl" "systemd-sysusers" "systemd-escape" "busctl" ]; })
       ]} \
       --subst-var-by srcblock "$srcblock" \
       --subst-var-by handlerblock "$handlerblock" \
       --subst-var-by generatorblock "$generatorblock"
+
+    substituteInPlace reload-units.pl \
+      --subst-var out \
+      --subst-var-by coreutils "${coreutils}" \
+      --subst-var-by perl "${perlWrapped}" \
+      --subst-var-by shell "${bash}/bin/sh" \
+      --subst-var-by utillinux "${util-linux}" \
 
     newblock="$srcblock"
     h="describe"
