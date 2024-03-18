@@ -844,6 +844,28 @@ if (scalar(keys(%units_to_reload)) > 0) {
         }
     }
 }
+
+# Hacky extra start for unify units.
+# The "reload but start" code is not working as we are not managing the targets
+# The fix for this is to collect inactive units again afterwards
+# and then start all that have a unify fragment path
+my $inunits = busctl_call_systemd1_mgr("ListUnitsByPatterns", "asas", 0, 0)->{data}->[0];
+for my $item (@{$inunits}) {
+    my ($unit, $description, $load_state, $active_state, $sub_state,
+        $following, $unit_path, $job_id, $job_type, $job_path) = @{$item};
+    if (!unit_is_active($unit)) {
+        # Figure out if we need to start the unit
+        if (!is_unify_unit($unit)) {
+          next;
+        }
+        my %unit_info = parse_unit("$newunits/$unit", "$newunits/$unit");
+        if (!(parse_systemd_bool(\%unit_info, "Unit", "RefuseManualStart", 0) || parse_systemd_bool(\%unit_info, "Unit", "X-OnlyManualStart", 0))) {
+            $units_to_start{$unit} = 1;
+            record_unit($start_list_file, $unit);
+        }
+    }
+}
+
 # Reload units that need it. This includes remounting changed mount
 # units.
 if (scalar(keys(%units_to_reload)) > 0) {
@@ -869,6 +891,8 @@ if (scalar(keys(%units_to_restart)) > 0) {
 my @units_to_start_filtered = filter_units(\%units_to_start);
 if (scalar(@units_to_start_filtered)) {
     print STDERR "starting the following units: ", join(", ", @units_to_start_filtered), "\n";
+}
+if (scalar(keys(%units_to_start))) {
     system("systemctl", "start", "--", sort(keys(%units_to_start))) == 0 or $res = 4;
     unlink($start_list_file);
 }
