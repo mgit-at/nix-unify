@@ -35,8 +35,8 @@ use Fcntl ':flock';
 # Location of activation scripts
 my $out = "@out@";
 # System closure path to switch to
-my $toplevel = "$ENV{toplevel}";
-my $oldetc = "$ENV{oldetc}";
+my $oldunits = "$ENV{oldunits}";
+my $newunits = "$ENV{newunits}";
 
 # To be robust against interruption, record what units need to be started etc.
 # We read these files again every time this script starts to make sure we continue
@@ -465,7 +465,7 @@ sub handle_modified_unit { ## no critic(Subroutines::ProhibitManyArgs, Subroutin
                             $units_to_stop->{$socket} = 1;
                             # Only restart sockets that actually
                             # exist in new configuration:
-                            if (-e "$toplevel/etc/systemd/system/$socket") {
+                            if (-e "$newunits/$socket") {
                                 $units_to_start->{$socket} = 1;
                                 if ($units_to_start eq $units_to_restart) {
                                     record_unit($restart_list_file, $socket);
@@ -543,8 +543,8 @@ while (my ($unit, $state) = each(%{$active_cur})) {
     if (!is_unify_unit($unit)) {
         next;
     }
-    my $cur_unit_file = "$oldetc/systemd/system/$unit";
-    my $new_unit_file = "$toplevel/etc/systemd/system/$unit";
+    my $cur_unit_file = "$oldunits/$unit";
+    my $new_unit_file = "$newunits/$unit";
 
     my $base_unit = $unit;
     my $cur_base_unit_file = $cur_unit_file;
@@ -553,8 +553,8 @@ while (my ($unit, $state) = each(%{$active_cur})) {
     # Detect template instances.
     if (!-e $cur_unit_file && !-e $new_unit_file && $unit =~ /^(.*)@[^\.]*\.(.*)$/msx) {
       $base_unit = "$1\@.$2";
-      $cur_base_unit_file = "$oldetc/systemd/system/$base_unit";
-      $new_base_unit_file = "$toplevel/etc/systemd/system/$base_unit";
+      $cur_base_unit_file = "$oldunits/$base_unit";
+      $new_base_unit_file = "$newunits/$base_unit";
     }
 
     my $base_name = $base_unit;
@@ -633,9 +633,9 @@ sub path_to_unit_name {
 
 # Should we have systemd re-exec itself?
 # my $cur_pid1_path = abs_path("/proc/1/exe") // "/unknown";
-# my $cur_systemd_system_config = abs_path("$oldetc/systemd/system.conf") // "/unknown";
+# my $cur_systemd_system_config = abs_path("$oldunits.conf") // "/unknown";
 # my $new_pid1_path = abs_path("$new_systemd/lib/systemd/systemd") or die;
-# my $new_systemd_system_config = abs_path("$toplevel/etc/systemd/system.conf") // "/unknown";
+# my $new_systemd_system_config = abs_path("$newunits.conf") // "/unknown";
 #
 # my $restart_systemd = $cur_pid1_path ne $new_pid1_path;
 # if ($cur_systemd_system_config ne $new_systemd_system_config) {
@@ -673,14 +673,14 @@ if ($action eq "dry-activate") {
     # Handle the activation script requesting the restart or reload of a unit.
     foreach (split(/\n/msx, read_file($dry_restart_by_activation_file, err_mode => "quiet") // "")) {
         my $unit = $_;
-        my $new_unit_file = "$toplevel/etc/systemd/system/$unit";
+        my $new_unit_file = "$newunits/$unit";
         my $base_unit = $unit;
         my $new_base_unit_file = $new_unit_file;
 
         # Detect template instances.
         if (!-e $new_unit_file && $unit =~ /^(.*)@[^\.]*\.(.*)$/msx) {
           $base_unit = "$1\@.$2";
-          $new_base_unit_file = "$toplevel/etc/systemd/system/$base_unit";
+          $new_base_unit_file = "$newunits/$base_unit";
         }
 
         my $base_name = $base_unit;
@@ -723,7 +723,7 @@ if ($action eq "dry-activate") {
 }
 
 
-syslog(LOG_NOTICE, "switching to system configuration $toplevel");
+syslog(LOG_NOTICE, "switching to system configuration");
 
 if (scalar(keys(%units_to_stop)) > 0) {
     if (scalar(@units_to_stop_filtered)) {
@@ -746,14 +746,14 @@ print STDERR "activating the configuration...\n";
 # Handle the activation script requesting the restart or reload of a unit.
 foreach (split(/\n/msx, read_file($restart_by_activation_file, err_mode => "quiet") // "")) {
     my $unit = $_;
-    my $new_unit_file = "$toplevel/etc/systemd/system/$unit";
+    my $new_unit_file = "$newunits/$unit";
     my $base_unit = $unit;
     my $new_base_unit_file = $new_unit_file;
 
     # Detect template instances.
     if (!-e $new_unit_file && $unit =~ /^(.*)@[^\.]*\.(.*)$/msx) {
       $base_unit = "$1\@.$2";
-      $new_base_unit_file = "$toplevel/etc/systemd/system/$base_unit";
+      $new_base_unit_file = "$newunits/$base_unit";
     }
 
     my $base_name = $base_unit;
@@ -833,7 +833,7 @@ if (scalar(keys(%units_to_reload)) > 0) {
             if (!is_unify_unit($unit)) {
               next;
             }
-            my %unit_info = parse_unit("$toplevel/etc/systemd/system/$unit", "$toplevel/etc/systemd/system/$unit");
+            my %unit_info = parse_unit("$newunits/$unit", "$newunits/$unit");
             if (!(parse_systemd_bool(\%unit_info, "Unit", "RefuseManualStart", 0) || parse_systemd_bool(\%unit_info, "Unit", "X-OnlyManualStart", 0))) {
                 $units_to_start{$unit} = 1;
                 record_unit($start_list_file, $unit);
@@ -916,9 +916,9 @@ if (scalar(@failed) > 0) {
 }
 
 if ($res == 0) {
-    syslog(LOG_NOTICE, "finished switching to system configuration $toplevel");
+    syslog(LOG_NOTICE, "finished switching to system configuration");
 } else {
-    syslog(LOG_ERR, "switching to system configuration $toplevel failed (status $res)");
+    syslog(LOG_ERR, "switching to system configuration failed (status $res)");
 }
 
 close($stc_lock) or die "Could not close lock - $!";

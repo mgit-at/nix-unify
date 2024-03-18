@@ -33,21 +33,23 @@ proc hook_systemd( ; ; ctx, cfg) {
 }
 
 proc hook_files( ; ; ctx, cfg) {
+  var oldunits="$(mktemp -d)"
+  if test -e /etc/systemd/system-generators/nix-unify-generator {
+    /etc/systemd/system-generators/nix-unify-generator "$oldunits" >/dev/null
+  }
+
   # setvar ctx.links.etc["systemd/system-generators/nix-unify-generator"] = { enable: true, target: "$self" }
   rm-link "$toplevel/bin/switch-to-configuration" "/etc/systemd/system-generators/nix-unify-generator"
 
   realise-target-links (ctx.links)
 
-  if (cfg.modules.shareSystemd.enable) {
-    var oldetc=""
-    if test -e /etc/static {
-      setvar oldetc="$(readlink -f /etc/static)"
-    }
+  var newunits="$(mktemp -d)"
+  /etc/systemd/system-generators/nix-unify-generator "$newunits" >/dev/null
 
-    env toplevel="$toplevel" oldetc="$oldetc" "$self/reload-units.pl" switch
-  } else {
-    systemctl daemon-reload
-  }
+  # will run systemctl daemon-reload
+  env toplevel="$toplevel" oldunits="$oldunits" newunits="$newunits" "$self/reload-units.pl" switch
+
+  rm -rf "$oldunits" "$newunits"
 }
 
 proc final( ; ; ctx, cfg) {
