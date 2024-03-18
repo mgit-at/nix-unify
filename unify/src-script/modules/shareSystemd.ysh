@@ -17,12 +17,14 @@ proc describe(; ; cfg) {
 # ref: https://www.freedesktop.org/software/systemd/man/latest/systemd.generator.html
 
 proc systemd-link(file, out) {
-  if test -e "$file" {
-    echo "link: $file $out"
-    mkdir -p "$(dirname "$out")"
-    ln -s "$file" "$out"
-  } else {
-    echo "skip: $file $out"
+  if ! test -e "$out" {
+    if test -e "$file" {
+      echo "link: $file $out"
+      mkdir -p "$(dirname "$out")"
+      ln -s "$file" "$out"
+    } else {
+      echo "skip: $file $out"
+    }
   }
 }
 
