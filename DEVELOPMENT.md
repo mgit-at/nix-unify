@@ -28,7 +28,7 @@ If you want to run the full testsuite first run `EXPORT_IMAGE=1 bash test/incus-
 
 ## Notes
 
-Write idempotent code. Tracking state is good, idempotence is better.
+Write idempotent code. Tracking migration state is good, idempotent migrations are better.
 
 Also consider implications about tracking of state changes
 and subsequent removal of state changes once they should cease to exist.
