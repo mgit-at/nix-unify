@@ -46,8 +46,11 @@ proc hook_files( ; ; ctx, cfg) {
   var newunits="$(mktemp -d)"
   /etc/systemd/system-generators/nix-unify-generator "$newunits" >/dev/null
 
-  # will run systemctl daemon-reload
-  env toplevel="$toplevel" oldunits="$oldunits" newunits="$newunits" "$self/reload-units.pl" switch
+  # dont run this to avoid races - during boot systemd will start everything as needed anyways
+  if (not ctx.is_boot) {
+    # will run systemctl daemon-reload
+    env toplevel="$toplevel" oldunits="$oldunits" newunits="$newunits" "$self/reload-units.pl" switch
+  }
 
   rm -rf "$oldunits" "$newunits"
 }
@@ -66,7 +69,7 @@ proc main(cmd ; cfg) {
 
   rm-link "$toplevel" /run/current-system
 
-  var ctx = { links: cfg.files }
+  var ctx = { links: cfg.files, is_boot: cmd === "at_boot" }
 
   @handlerblock@
 }
