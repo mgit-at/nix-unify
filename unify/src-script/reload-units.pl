@@ -516,6 +516,9 @@ sub begins_with
 sub is_unify_unit {
     my ($unit) = @_;
     my $fragment = `systemctl show -p FragmentPath --value -- "$unit"`;
+    if ($unit eq "nix-unify-at-boot.service") {
+      return !1;
+    }
     if ($fragment eq "\n") {
       return !1;
     }

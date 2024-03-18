@@ -46,7 +46,7 @@ proc describe(; ; cfg) {
   }
 }
 
-proc final(; ; ctx, cfg) {
+proc hook_files(; ; ctx, cfg) {
   if (cfg.enable) {
     mkdir -p "$(dirname "$outSysusers")"
     rm-link "$srcSysusers" "$outSysusers"
