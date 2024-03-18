@@ -1,10 +1,11 @@
 # shellcheck shell=sh
 
+if [ -n "${__ETC_PROFILE_NIX_UNIFY_SOURCED:-}" ]; then return; fi
+__ETC_PROFILE_NIX_UNIFY_SOURCED=1
+
 # Expand $PATH to include the directory where nixos applications go.
 nix_bin_path="/run/current-system/sw/bin"
-if [ -n "${PATH##*${nix_bin_path}}" ] && [ -n "${PATH##*${nix_bin_path}:*}" ]; then
-    export PATH="$PATH:${nix_bin_path}"
-fi
+export PATH="$PATH:${nix_bin_path}"
 
 # Ensure base distro defaults xdg path are set if nothing filed up some
 # defaults yet.
@@ -16,6 +17,4 @@ fi
 # looked for in XDG_DATA_DIRS; make sure it includes the relevant directory for
 # nixos applications' desktop files.
 nix_xdg_path="/run/current-system/sw/share"
-if [ -n "${XDG_DATA_DIRS##*${nix_xdg_path}}" ] && [ -n "${XDG_DATA_DIRS##*${nix_xdg_path}:*}" ]; then
-    export XDG_DATA_DIRS="${XDG_DATA_DIRS}:${nix_xdg_path}"
-fi
+export XDG_DATA_DIRS="${XDG_DATA_DIRS}:${nix_xdg_path}"

@@ -1,4 +1,4 @@
-module sharenetworkd || return
+module sharenNtworkd || return
 
 proc describe(; ; cfg) {
   d_t "share networkd"
