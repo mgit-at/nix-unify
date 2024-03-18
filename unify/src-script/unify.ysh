@@ -39,7 +39,12 @@ proc hook_files( ; ; ctx, cfg) {
   realise-target-links (ctx.links)
 
   if (cfg.modules.shareSystemd.enable) {
-    toplevel="$toplevel" "$self/reload-units.pl" switch
+    var oldetc=""
+    if test -e /etc/static {
+      setvar oldetc="$(readlink -f /etc/static)"
+    }
+
+    env toplevel="$toplevel" oldetc="$oldetc" "$self/reload-units.pl" switch
   } else {
     systemctl daemon-reload
   }

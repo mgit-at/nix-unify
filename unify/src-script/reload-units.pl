@@ -36,6 +36,7 @@ use Fcntl ':flock';
 my $out = "@out@";
 # System closure path to switch to
 my $toplevel = "$ENV{toplevel}";
+my $oldetc = "$ENV{oldetc}";
 
 # To be robust against interruption, record what units need to be started etc.
 # We read these files again every time this script starts to make sure we continue
@@ -507,6 +508,21 @@ sub handle_modified_unit { ## no critic(Subroutines::ProhibitManyArgs, Subroutin
     return;
 }
 
+sub begins_with
+{
+    return substr($_[0], 0, length($_[1])) eq $_[1];
+}
+
+sub is_unify_unit {
+    my ($unit) = @_;
+    my $fragment = `systemctl show -p FragmentPath --value -- "$unit"`;
+    if ($fragment eq "\n") {
+      return !1;
+    }
+    my $full = `readlink -f $fragment`;
+    return begins_with($full, "/nix/store");
+}
+
 
 # Figure out what units need to be stopped, started, restarted or reloaded.
 my (%units_to_stop, %units_to_skip, %units_to_start, %units_to_restart, %units_to_reload);
@@ -524,7 +540,10 @@ my %units_to_filter; # units not shown
 
 my $active_cur = get_active_units();
 while (my ($unit, $state) = each(%{$active_cur})) {
-    my $cur_unit_file = "/etc/static/systemd/system/$unit";
+    if (!is_unify_unit($unit)) {
+        next;
+    }
+    my $cur_unit_file = "$oldetc/systemd/system/$unit";
     my $new_unit_file = "$toplevel/etc/systemd/system/$unit";
 
     my $base_unit = $unit;
@@ -534,7 +553,7 @@ while (my ($unit, $state) = each(%{$active_cur})) {
     # Detect template instances.
     if (!-e $cur_unit_file && !-e $new_unit_file && $unit =~ /^(.*)@[^\.]*\.(.*)$/msx) {
       $base_unit = "$1\@.$2";
-      $cur_base_unit_file = "/etc/static/systemd/system/$base_unit";
+      $cur_base_unit_file = "$oldetc/systemd/system/$base_unit";
       $new_base_unit_file = "$toplevel/etc/systemd/system/$base_unit";
     }
 
@@ -614,7 +633,7 @@ sub path_to_unit_name {
 
 # Should we have systemd re-exec itself?
 # my $cur_pid1_path = abs_path("/proc/1/exe") // "/unknown";
-# my $cur_systemd_system_config = abs_path("/etc/static/systemd/system.conf") // "/unknown";
+# my $cur_systemd_system_config = abs_path("$oldetc/systemd/system.conf") // "/unknown";
 # my $new_pid1_path = abs_path("$new_systemd/lib/systemd/systemd") or die;
 # my $new_systemd_system_config = abs_path("$toplevel/etc/systemd/system.conf") // "/unknown";
 #
@@ -749,7 +768,7 @@ foreach (split(/\n/msx, read_file($restart_by_activation_file, err_mode => "quie
 
     handle_modified_unit($unit, $base_name, $new_unit_file, $new_base_unit_file, undef, $active_cur, \%units_to_restart, \%units_to_restart, \%units_to_reload, \%units_to_restart, \%units_to_skip);
 }
-# We can remove the file now because it has been propagated to the other restart/reload files
+# We can remove the file now becausye it has been propagated to the other restart/reload files
 unlink($restart_by_activation_file);
 
 foreach (split(/\n/msx, read_file($reload_by_activation_file, err_mode => "quiet") // "")) {
@@ -811,6 +830,9 @@ if (scalar(keys(%units_to_reload)) > 0) {
     for my $unit (keys(%units_to_reload)) {
         if (!unit_is_active($unit)) {
             # Figure out if we need to start the unit
+            if (!is_unify_unit($unit)) {
+              next;
+            }
             my %unit_info = parse_unit("$toplevel/etc/systemd/system/$unit", "$toplevel/etc/systemd/system/$unit");
             if (!(parse_systemd_bool(\%unit_info, "Unit", "RefuseManualStart", 0) || parse_systemd_bool(\%unit_info, "Unit", "X-OnlyManualStart", 0))) {
                 $units_to_start{$unit} = 1;
@@ -846,10 +868,10 @@ if (scalar(keys(%units_to_restart)) > 0) {
 # systemd.
 my @units_to_start_filtered = filter_units(\%units_to_start);
 if (scalar(@units_to_start_filtered)) {
-    print STDERR "starting the following units: ", join(", ", @units_to_start_filtered), "\n"
+    print STDERR "starting the following units: ", join(", ", @units_to_start_filtered), "\n";
+    system("systemctl", "start", "--", sort(keys(%units_to_start))) == 0 or $res = 4;
+    unlink($start_list_file);
 }
-system("systemctl", "start", "--", sort(keys(%units_to_start))) == 0 or $res = 4;
-unlink($start_list_file);
 
 
 # Print failed and new units.
