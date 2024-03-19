@@ -31,6 +31,7 @@ for img in $IMGLIST; do
       apt install curl xz-utils openssh-server -y
     elif [ -e /usr/bin/dnf ]; then
       dnf install openssh-server xz-static -y
+      systemctl start sshd
     fi
 
     yes y | sh <(curl -L https://nixos.org/nix/install) --daemon
