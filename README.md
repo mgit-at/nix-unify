@@ -45,7 +45,7 @@ flake.nix:
         inherit inputs outputs;
       };
       modules = [
-        "${./nixos}/hosts/${host}"
+        "${./.}/nixos/hosts/${host}"
       ];
     }) (builtins.readDir ./nixos/hosts);
   };
