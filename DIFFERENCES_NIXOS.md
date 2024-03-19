@@ -29,7 +29,3 @@ Not currently supported, support planned
 Symlinks in /etc aren't automatically created
 
 `nix-unify.files.etc."file-or-folder" = {}` can be used to create a symlink from the nixos /etc to the host's /etc
-
-## Starting services
-
-For now this needs to be done manually or via rebooting. Support wip.
