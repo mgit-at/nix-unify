@@ -16,7 +16,7 @@ if [ -v EXPORT_IMAGE ]; then
   mkdir -p "$IMAGES"
 fi
 
-for img in debian/12 ubuntu/22.04; do
+for img in $IMGLIST; do
   os=$(dirname "$img")
 
   incus delete -f "unify-$os" || true
@@ -25,9 +25,14 @@ for img in debian/12 ubuntu/22.04; do
   sleep 10s
 
   echo "
-    apt update
-    apt dist-upgrade -y
-    apt install curl xz-utils openssh-server -y
+    if [ -e /usr/bin/apt-get ]; then
+      apt update
+      apt dist-upgrade -y
+      apt install curl xz-utils openssh-server -y
+    elif [ -e /usr/bin/dnf ]; then
+      dnf install openssh-server xz-static -y
+    fi
+
     yes y | sh <(curl -L https://nixos.org/nix/install) --daemon
     mkdir -p /root/.ssh
     echo \"$(cat $SELF/id_ed25519_dev.pub)\" > /root/.ssh/authorized_keys

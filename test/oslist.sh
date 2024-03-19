@@ -1,7 +1,7 @@
 #!/bin/bash
 
-IMGLIST="debian/12 ubuntu/22.04"
-OSLIST="debian ubuntu"
+IMGLIST="debian/12 ubuntu/22.04 fedora/39"
+OSLIST="debian ubuntu fedora"
 
 IMAGES="$SELF/images"
 
