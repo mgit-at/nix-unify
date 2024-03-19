@@ -30,18 +30,20 @@ proc systemd-link(file, out) {
 
 # TODO: pregen filelist and then just use static file list?
 proc hook_systemd(; ; ctx, cfg) {
-  for unit in (cfg.unitsResolved) {
-    var tdir
-    if (arrayContains(cfg.replace, unit)) {
-      setvar tdir=(ctx.earlyDir)
-    } else {
-      setvar tdir=(ctx.lateDir)
-    }
-    systemd-link "$etc/systemd/system/$unit.d" "$tdir/$unit.d"
-    var files=split("$(find -L "$etc/systemd/system" -iname "$unit")")
-    for f in @files {
-      var repl="$(echo "$f" | sed "s|^$etc/systemd/system/||g")"
-      systemd-link "$f" "$tdir/$repl"
+  if (cfg.enable) {
+    for unit in (cfg.unitsResolved) {
+      var tdir
+      if (arrayContains(cfg.replace, unit)) {
+        setvar tdir=(ctx.earlyDir)
+      } else {
+        setvar tdir=(ctx.lateDir)
+      }
+      systemd-link "$etc/systemd/system/$unit.d" "$tdir/$unit.d"
+      var files=split("$(find -L "$etc/systemd/system" -iname "$unit")")
+      for f in @files {
+        var repl="$(echo "$f" | sed "s|^$etc/systemd/system/||g")"
+        systemd-link "$f" "$tdir/$repl"
+      }
     }
   }
 }
