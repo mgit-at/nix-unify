@@ -59,6 +59,7 @@ proc realise-link(source, target) {
 }
 
 proc prune-old {
+  touch "$newFileDB"
   touch "$fileDB"
 
   var newDB = split("$(cat "$newFileDB")")
