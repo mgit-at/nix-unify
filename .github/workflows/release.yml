@@ -6,7 +6,7 @@ on:
 jobs:
   releaseanddeploy:
     runs-on: ubuntu-latest
-    if: github.repository == 'mgit-at/ansible-collection-nix_unify'
+    if: github.repository == 'mgit-at/nix-unify'
     strategy:
       matrix:
         python-version: [3.8]
