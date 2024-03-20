@@ -97,7 +97,7 @@ Either set `ANSIBLE_JSON` manually or use the nixos-rebuild role
 Install the collection using ansible-galaxy
 
 ```
-ansible-galaxy collection install git+https://github.com/mgit-at/nix-unify.git
+ansible-galaxy collection install mgit_at.nix_unify
 ```
 
 - local_nix: Include before any nixos-rebuild roles
