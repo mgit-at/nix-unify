@@ -25,7 +25,8 @@
     dest: "{{ nix_portable }}"
     mode: "0755"
   delegate_to: localhost
-  when: not stat_nix_portable.stat.exists
+  when: not ansible_check_mode and not stat_nix_portable.stat.exists
+  check_mode: false
 
 - name: Check if nix-wrapper exists
   ansible.builtin.stat:

@@ -14,6 +14,7 @@
     src: templates/json.j2
     dest: "{{ ansible_json_vars.path }}"
   delegate_to: localhost
+  when: not ansible_check_mode
 
 - block:
   - name: Deploy "{{ flake_url }}" to "{{ target_host }}"
@@ -21,6 +22,7 @@
       env ANSIBLE_JSON={{ ansible_json_vars.path | quote }} {{ nix_wrapper }} nix run nixpkgs#nixos-rebuild -- --use-substitutes --flake "{{ flake_dir }}#{{ flake_target }}" "switch" --impure --target-host "{{ target_host }}" --show-trace
     delegate_to: localhost
     register: nixos_rebuild
+    when: not ansible_check_mode
   rescue:
    - fail:
        msg: "NixOS Deployment {{ flake_url }} to {{ target_host }} failed"
