@@ -6,8 +6,10 @@ if [ -v NIXOS_SKIP ]; then
   exit 0
 fi
 
+export ANSIBLE_JSON={{ loc_json | quote }}
+
 if [ -v NIXOS_ANYWHERE ]; then
-  env ANSIBLE_JSON={{ loc_json | quote }} {{ nix_wrapper }} nix run github:nix-community/nixos-anywhere -- --option pure-eval "false" --flake "{{ flake_dir }}#{{ flake_target }}" "{{ target_host }}"
+  {{ nix_wrapper }} nix run github:nix-community/nixos-anywhere -- --option pure-eval "false" --flake "{{ flake_dir }}#{{ flake_target }}" "{{ target_host }}"
 else
-  env ANSIBLE_JSON={{ loc_json | quote }} {{ nix_wrapper }} nix run nixpkgs#nixos-rebuild -- --flake "{{ flake_dir }}#{{ flake_target }}" "switch" --impure --target-host "{{ target_host }}" --show-trace
+  {{ nix_wrapper }} nix run nixpkgs#nixos-rebuild -- --flake "{{ flake_dir }}#{{ flake_target }}" "switch" --impure --target-host "{{ target_host }}" --show-trace
 fi
