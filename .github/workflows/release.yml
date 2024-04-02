@@ -2,6 +2,9 @@
 name: Release and Deploy collection
 on:
   workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
 
 jobs:
   releaseanddeploy:
