@@ -1,9 +1,9 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 set -eux
 
-{% if deploy_with_nixos_anywhere is defined %}
-env ANSIBLE_JSON={{ loc_json | quote }} {{ nix_wrapper }} nix run github:nix-community/nixos-anywhere -- --option pure-eval "false" --flake "{{ flake_dir }}#{{ flake_target }}" "{{ target_host }}"
-{% else %}
-env ANSIBLE_JSON={{ loc_json | quote }} {{ nix_wrapper }} nix run nixpkgs#nixos-rebuild -- --flake "{{ flake_dir }}#{{ flake_target }}" "switch" --impure --target-host "{{ target_host }}" --show-trace
-{% endif %}
+if [ -v NIXOS_ANYWHERE ]; then
+  env ANSIBLE_JSON={{ loc_json | quote }} {{ nix_wrapper }} nix run github:nix-community/nixos-anywhere -- --option pure-eval "false" --flake "{{ flake_dir }}#{{ flake_target }}" "{{ target_host }}"
+else
+  env ANSIBLE_JSON={{ loc_json | quote }} {{ nix_wrapper }} nix run nixpkgs#nixos-rebuild -- --flake "{{ flake_dir }}#{{ flake_target }}" "switch" --impure --target-host "{{ target_host }}" --show-trace
+fi
