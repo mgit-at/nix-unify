@@ -6,3 +6,7 @@ target_host: "{{ ansible_user }}@{{ ansible_host }}"
 exported_vars:
   hostvars: "{{ hostvars[inventory_hostname] }}"
   facts: "{{ ansible_facts }}"
+
+loc_base: "{{ playbook_dir }}/_nix_ansible"
+loc_json: "{{ loc_base }}/{{ flake_target }}.json"
+loc_script: "{{ loc_base }}/{{ flake_target }}.sh"
