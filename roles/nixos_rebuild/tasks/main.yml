@@ -8,6 +8,13 @@
     state: directory
   delegate_to: localhost
 
+- name: Write .gitignore file
+  ansible.builtin.template:
+    src: templates/ignore.j2
+    dest: "{{ loc_base }}/.gitignore"
+    mode: "0655"
+  delegate_to: localhost
+
 - name: Write variables to file
   ansible.builtin.template:
     src: templates/json.j2
