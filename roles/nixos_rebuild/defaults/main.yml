@@ -1,5 +1,5 @@
 ---
-flake_dir: "$(pwd)"
+flake_dir: "{{ playbook_dir }}"
 flake_target: "{{ inventory_hostname }}"
 flake_url: "{{ flake_dir }}#{{ flake_target }}"
 target_host: "{{ ansible_user }}@{{ ansible_host }}"
