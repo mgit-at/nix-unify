@@ -11,5 +11,5 @@ export ANSIBLE_JSON={{ loc_json | quote }}
 if [ -v NIXOS_ANYWHERE ]; then
   {{ nix_wrapper | quote }} nix run github:nix-community/nixos-anywhere -- --option pure-eval "false" --flake {{ flake_url | quote }} {{ target_host | quote }}
 else
-  {{ nix_wrapper | quote }} nix run nixpkgs#nixos-rebuild -- --flake {{ flake_url | quote }} "switch" --impure --target-host {{ target_host | quote }} --show-trace
+  {{ nix_wrapper | quote }} nix run nixpkgs#nixos-rebuild -- --flake {{ flake_url | quote }} "switch" --use-substitutes --impure --target-host {{ target_host | quote }} --show-trace
 fi
