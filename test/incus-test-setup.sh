@@ -28,9 +28,9 @@ for img in $IMGLIST; do
     if [ -e /usr/bin/apt-get ]; then
       apt update
       apt dist-upgrade -y
-      apt install curl xz-utils openssh-server -y
+      apt install curl xz-utils openssh-server python3 -y
     elif [ -e /usr/bin/dnf ]; then
-      dnf install openssh-server xz-static -y
+      dnf install openssh-server xz-static python3 -y
       systemctl start sshd
     fi
 
