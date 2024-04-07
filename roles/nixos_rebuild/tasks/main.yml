@@ -31,7 +31,12 @@
 
 - block:
   - name: Deploy "{{ flake_url }}" to "{{ target_host }}"
-    ansible.builtin.shell: "{{ loc_script }}"
+    ansible.builtin.shell: |
+      exec \
+        1> >(tee >(awk '{ system(""); print "[{{ flake_target }}] stdout:", $0; system(""); }' >> /dev/tty)) \
+        2> >(tee >(awk '{ system(""); print "[{{ flake_target }}] stderr:", $0; system(""); }' >> /dev/tty) >&2)
+
+      {{ loc_script }}
     delegate_to: localhost
     register: nixos_rebuild
     when: not ansible_check_mode
