@@ -3,7 +3,7 @@
 
 namespace: mgit_at
 name: nix_unify
-version: 0.4.6
+version: 0.4.7
 readme: README.md
 authors:
   - Maciej Krüger (github.com/mkg20001)
