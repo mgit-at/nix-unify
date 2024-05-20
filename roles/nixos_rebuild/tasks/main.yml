@@ -21,6 +21,7 @@
     dest: "{{ loc_json }}"
     mode: "0655"
   delegate_to: localhost
+  no_log: true
 
 - name: Write deploy script to file
   ansible.builtin.template:
