@@ -1,7 +1,7 @@
 # shellcheck shell=sh
 
 if [ -n "${__ETC_PROFILE_NIX_UNIFY_SOURCED:-}" ]; then return; fi
-__ETC_PROFILE_NIX_UNIFY_SOURCED=1
+export __ETC_PROFILE_NIX_UNIFY_SOURCED=1
 
 # Expand $PATH to include the directory where nixos applications go.
 nix_bin_path="/run/current-system/sw/bin"

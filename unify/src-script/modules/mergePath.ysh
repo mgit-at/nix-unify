@@ -9,8 +9,9 @@ proc final(; ; ctx, cfg) {
   if (cfg.enable) {
     #if ! try versioned-marker "mergePath" "1" {
       # HACK: append properly
-      sed "s|/snap/bin|/snap/bin:/run/current-system/sw/bin|" -i /etc/environment
-      sed "s|/snap/bin|/snap/bin:/run/current-system/sw/bin|" -i /etc/sudoers
+      # TODO: enable this via file append again
+      # sed "s|/snap/bin|/snap/bin:/run/current-system/sw/bin|" -i /etc/environment
+      # sed "s|/snap/bin|/snap/bin:/run/current-system/sw/bin|" -i /etc/sudoers
 
       for shell in /etc/bashrc /etc/profile.d/unify.sh /etc/zshrc /etc/bash.bashrc {
         if ! test --file $shell {
