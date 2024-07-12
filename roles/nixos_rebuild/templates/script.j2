@@ -9,10 +9,14 @@ fi
 export ANSIBLE_JSON={{ loc_json | quote }}
 
 if [ -v NIXOS_ANYWHERE ]; then
-  if [ -v NIXOS_METHOD ]; then
-    echo "ERR: Method not supported for NIXOS_ANYWHERE!" >&2
+  if [ -v NIXOS_METHOD ] || [ -v NIXOS_BUILD_HOST ]; then
+    echo "ERR: NIXOS_METHOD and/or NIXOS_BUILD_HOST not supported for NIXOS_ANYWHERE!" >&2
   fi
   {{ nix_wrapper | quote }} nix run github:nix-community/nixos-anywhere -- --option pure-eval "false" --flake {{ flake_url | quote }} {{ target_host | quote }}
 else
-  {{ nix_wrapper | quote }} nix run nixpkgs#nixos-rebuild -- --flake {{ flake_url | quote }} "${NIXOS_METHOD:-switch}" --use-substitutes --impure --target-host {{ target_host | quote }} --show-trace
+  EXTRA_ARGS=()
+  if [ -v NIXOS_BUILD_HOST ]; then
+    EXTRA_ARGS+=("--build-host" "$NIXOS_BUILD_HOST")
+  fi
+  {{ nix_wrapper | quote }} nix run nixpkgs#nixos-rebuild -- --flake {{ flake_url | quote }} "${NIXOS_METHOD:-switch}" --use-substitutes --impure --target-host {{ target_host | quote }} --show-trace "${EXTRA_ARGS[@]}"
 fi
