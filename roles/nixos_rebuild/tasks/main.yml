@@ -43,6 +43,9 @@
     delegate_to: localhost
     register: nixos_rebuild
     when: not ansible_check_mode
+
+  - name: Gather host facts again
+    setup:
   rescue:
    - fail:
        msg: "NixOS Deployment {{ flake_url }} to {{ target_host }} failed"
