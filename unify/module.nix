@@ -76,9 +76,6 @@ in
     # lookout protection
     networking.firewall.allowedTCPPorts = mkDefault [ 22 ];
 
-    # causes many unnecessary rebuilds
-    environment.noXlibs = false;
-
     # managment, etc/profile.d
     environment.systemPackages = with pkgs; [
       nix-unify.path
