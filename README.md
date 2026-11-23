@@ -1,5 +1,9 @@
 # nix-unify
 
+> [!WARNING]
+> **Project Discontinued**  
+> This repository served as an internal proof of concept that has now concluded. No further development is planned, and this project is scheduled for teardown.
+
 Use NixOS parts in your host operating-system, for a step-by-step migration.
 
 This repository contains multiple parts, each usable on their own:
